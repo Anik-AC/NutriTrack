@@ -61,14 +61,6 @@ All necessary Git commands for working with this repository are listed in the `g
 Make sure to check this file for the correct workflow when pulling, pushing, and managing branches.
 
 ---
-
-## Contributors
-- Anik Chakraborti (a76chakr)
-- Gayathri Balasundaram (gbalasun)
-- Azadan Bhagwagar (abhagwag)
-- Karan Arora (k28arora)
-- Aditya Dev (a2dev)
-
 For any questions, refer to the project documentation or contact the team!
 
 
