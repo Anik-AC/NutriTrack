@@ -21,7 +21,7 @@ import {
   InputRightElement,
 } from "@chakra-ui/react";
 import axiosInstance from "../../../utils/axiosInstance.ts"; 
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { useGoogleLogin} from "@react-oauth/google";
 import zxcvbn from "zxcvbn";
 // import { UserContext } from "../../../contexts/UserContext";
@@ -105,7 +105,7 @@ const SignUpDialog = ({ open, onClose, openSignIn }: SignUpDialogProps) => {
     if (!validateInputs()) return;
   
     try {
-      const response = await axios.post("/api/auth/register", {
+      const response = await axiosInstance.post("/api/auth/register", {
         email: emailRef.current?.value,
         password: passwordRef.current?.value,
       });
