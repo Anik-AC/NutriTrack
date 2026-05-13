@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { BACKEND_URL } from '../utils/env';
 
 interface Tracking {
     totalCalories?: number;
@@ -15,7 +16,7 @@ export const getHistoricalData = async (timeAggParam: string = 'month', startDat
         const token = localStorage.getItem("token");
         console.log("Token being sent:", token); // Debug log
 
-        const response = await axios.get(`/api/history`, {
+        const response = await axios.get(`${BACKEND_URL}/api/history`, {
             params: {
                 timeAgg: timeAggParam,
                 startDate: startDate,

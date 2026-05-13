@@ -47,3 +47,21 @@ NutriTrack-Frontend/node_modules
 *.njsproj
 *.sln
 *.sw?
+
+# Optional: system generated artifacts
+*.cache
+.cache/
+dump/
+
+#AI Files
+.claude/
+CLAUDE.md
+.cursor/
+
+#Others
+Design-Ideas/
+graphify-out/
+.vercel
+.env*.local
+
+.graphify*

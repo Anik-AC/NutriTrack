@@ -1,11 +1,12 @@
 import axios from 'axios';
+import { BACKEND_URL } from '../utils/env';
 import { DailyPieChartProps } from '@/Components/Sections/CustomerSections/DailyPieChart';
 
 export const getDailyData = async (): Promise<DailyPieChartProps['dailyData'] | undefined> => {
     try {
         const token = localStorage.getItem("token");
         console.log("Token being sent:", token); // Debug log
-        const response = await axios.get(`/api/history`, {
+        const response = await axios.get(`${BACKEND_URL}/api/history`, {
             // TO DO: change to current date
             params: {
                 timeAgg: 'day',
