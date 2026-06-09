@@ -1,9 +1,14 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
 
 import { connectDB } from "./config/db.js";
+import { swaggerSpec } from "./config/swagger.js";
 import { nutriRoutes, authRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes } from "./routes/index.js";
+import { generalLimiter, authLimiter, bookingLimiter } from "./middleware/rateLimiter.js";
+import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
+import { sendSuccess } from "./utils/apiResponse.js";
 
 dotenv.config();
 
@@ -24,12 +29,50 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api", nutriRoutes);
-app.use("/api/user", profileRoutes);
-app.use("/api/booking", userRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/coach", coachRoutes);
+// 🔹 API docs (Swagger UI + raw OpenAPI JSON)
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/api/docs.json", (req, res) => res.json(swaggerSpec));
+
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     summary: Service health check
+ *     tags: [System]
+ *     responses:
+ *       200:
+ *         description: Service is up
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiSuccess' }
+ */
+const health = (req, res) =>
+  sendSuccess(res, { status: "ok", uptime: process.uptime(), env: process.env.NODE_ENV || "development" });
+app.get("/api/health", health);
+app.get("/api/v1/health", health);
+
+/**
+ * Mount each route group under BOTH the versioned `/api/v1/*` prefix (preferred
+ * for new features) and the legacy `/api/*` alias (backward compatibility), each
+ * behind its rate limiter. Specific sub-paths are mounted before the nutri routes
+ * (which live at the `/api` root) so they take precedence.
+ */
+const mountGroup = (subPath, limiter, router) => {
+  app.use(`/api/v1${subPath}`, limiter, router);
+  app.use(`/api${subPath}`, limiter, router);
+};
+
+mountGroup("/auth", authLimiter, authRoutes);
+mountGroup("/user", generalLimiter, profileRoutes);
+mountGroup("/booking", bookingLimiter, userRoutes);
+mountGroup("/admin", generalLimiter, adminRoutes);
+mountGroup("/coach", generalLimiter, coachRoutes);
+// nutri routes live at the API root — mounted last so the groups above win.
+mountGroup("", generalLimiter, nutriRoutes);
+
+// 404 + global error handler (must be last).
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 connectDB();
 

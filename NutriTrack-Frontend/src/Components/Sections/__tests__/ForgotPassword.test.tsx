@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ForgotPassword from '../Authentication/ForgotPassword'; // Adjust path as needed
 import axiosInstance from '../../../utils/axiosInstance';
-import { useToast } from '@chakra-ui/react';
+import { notify } from '../../../utils/notify';
 import '@testing-library/jest-dom';
 import { AxiosError } from 'axios';
 
@@ -10,22 +10,17 @@ jest.mock('../../../utils/axiosInstance', () => ({
   post: jest.fn(),
 }));
 
-// Mock useToast
-jest.mock('@chakra-ui/react', () => {
-  const originalModule = jest.requireActual('@chakra-ui/react');
-  return {
-    ...originalModule,
-    useToast: jest.fn(),
-  };
-});
+// Mock the toast helper
+jest.mock('../../../utils/notify', () => ({
+  notify: jest.fn(),
+}));
 
 describe('ForgotPassword', () => {
   const mockHandleClose = jest.fn();
-  const mockToast = jest.fn();
+  const mockToast = notify as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useToast as jest.Mock).mockReturnValue(mockToast);
     jest.useFakeTimers(); // For setTimeout testing
   });
 

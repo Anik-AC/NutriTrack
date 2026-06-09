@@ -3,24 +3,31 @@ import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import {AxiosError} from "axios";
 import {Navbar, Footer} from "../Components/Sections";
-import {
-    Box,
-    Text,
-    Button,
-    Input,
-    Stack,
-    useToast,
-    Progress,
-    InputGroup, 
-    InputRightElement,
-  } from '@chakra-ui/react'
+import { notify } from "../utils/notify";
 import zxcvbn from "zxcvbn";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Input } from "../Components/ui/input";
+import { Progress } from "../Components/ui/progress";
+
+const strengthBarClasses = [
+  "[&_[data-slot=progress-indicator]]:bg-red-500",
+  "[&_[data-slot=progress-indicator]]:bg-orange-500",
+  "[&_[data-slot=progress-indicator]]:bg-yellow-500",
+  "[&_[data-slot=progress-indicator]]:bg-green-500",
+  "[&_[data-slot=progress-indicator]]:bg-green-500",
+];
+const strengthTextClasses = [
+  "text-red-500",
+  "text-orange-500",
+  "text-yellow-500",
+  "text-green-500",
+  "text-green-500",
+];
 
 const ResetPassword = () => {
     const { token } = useParams<{ token: string }>(); // ✅ Get token from URL
     const navigate = useNavigate();
-    const toast = useToast();
+    const toast = notify;
     const [loading, setLoading] = useState(false);
 
     const passwordRef = useRef<HTMLInputElement>(null);
@@ -109,146 +116,116 @@ const ResetPassword = () => {
     const checkPasswordStrength = (password: string) => {
         const result = zxcvbn(password);
         setPasswordStrength(result.score); // Score is from 0 (weak) to 4 (strong)
-    
+
         if (result.score < 3) { // Only allow "Good" (3) and "Strong" (4) passwords
         setPasswordError(true);
         setPasswordErrorMessage("Password is too weak. Try adding more unique characters.");
-        //return false;  
+        //return false;
         } else {
         setPasswordError(false);
         setPasswordErrorMessage("");
         }
-    }; 
+    };
 
     return (
 
-    <Box className="w-full min-h-screen flex flex-col">
-          
+    <div className="w-full min-h-screen flex flex-col">
+
         {/* ✅ Fixed Navbar */}
-        <Box className="fixed top-0 left-0 w-full z-50 bg-navbar">
+        <div className="fixed top-0 left-0 w-full z-50 bg-navbar">
             <Navbar />
-        </Box>
+        </div>
 
         {/* ✅ Ensures content starts below the navbar */}
-        <Box className="flex-grow pt-[80px] bg-alternate">  
-            <Box maxW="400px" mx="auto" mt="50px" p="20px" borderRadius="8px" boxShadow="md" bg="var(--dark-green)" color={"var(--soft-white)"}>
-                <Text fontSize="xl" fontWeight="bold" mb="4">
+        <div className="flex-grow pt-[80px] bg-alternate">
+            <div className="max-w-[400px] mx-auto mt-[50px] p-5 rounded-lg shadow-md bg-[var(--dark-green)] text-[var(--soft-white)]">
+                <p className="text-xl font-bold mb-4">
                     Reset Password
-                </Text>
-                <Stack spacing={4}>
+                </p>
+                <div className="flex flex-col gap-4">
                     <form onSubmit={handleResetPassword} id="ResetPasswordForm" data-testid="ResetPasswordForm">
-                        <Stack spacing={4}>
+                        <div className="flex flex-col gap-4">
                             {/* Password Input */}
-                            <Box>
-                                <Text fontSize="15px" fontWeight={600} mb={1}>Password</Text>
-                                <InputGroup>
-                                    <Input 
-                                    ref={passwordRef} 
+                            <div>
+                                <p className="text-[15px] font-semibold mb-1">Password</p>
+                                <div className="relative">
+                                    <Input
+                                    ref={passwordRef}
                                     type={visibleField === "password" ? "text" : "password"}
                                     placeholder="Enter new password"
-                                    isInvalid={passwordError} 
-                                    errorBorderColor="red.300"
+                                    aria-invalid={passwordError || undefined}
                                     onChange={(e) => checkPasswordStrength(e.target.value)}
                                     aria-label="Password"
                                     aria-describedby={passwordError ? "password-error" : undefined}
-                                    _focus={{
-                                        outline: "2px solid var(--bright-green)",
-                                        outlineOffset: "2px",
-                                    }}
+                                    className="pr-12 text-black"
                                     />
-                                    <InputRightElement width="3rem">
-                                        <Button
-                                            h="1.5rem"
-                                            size="sm"
-                                            bg="white" // ✅ Default white background
-                                            _hover={{ 
-                                                bg: 'var(--bright-green)'
-                                            }}  // ✅ Changes to green on hover
-                                            _focus={{ boxShadow: "none" }}
-                                            onClick={() => setVisibleField(visibleField === "password" ? null : "password")}
-                                            variant="ghost"
-                                        >
-                                            {visibleField === "password" ? <FaEyeSlash /> : <FaEye />}  {/* ✅ Toggle eye icon */}
-                                        </Button>
-                                    </InputRightElement>
-                                </InputGroup>
-                            {/* Password Stregth Checker */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setVisibleField(visibleField === "password" ? null : "password")}
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex h-6 items-center justify-center rounded-md bg-white px-2 text-gray-700 hover:bg-[var(--bright-green)] focus:outline-none"
+                                    >
+                                        {visibleField === "password" ? <FaEyeSlash /> : <FaEye />}
+                                    </button>
+                                </div>
+                            {/* Password Strength Checker */}
                                 {passwordRef.current?.value && (
-                                <Box mt={3}> {/* Adds padding above the progress bar */}
-                                    <Progress 
+                                <div className="mt-3">
+                                    <Progress
                                     value={(passwordStrength + 1) * 20} // Convert score (0-4) to percentage (0-100)
-                                    size="sm" 
-                                    colorScheme={["red", "orange", "yellow", "green", "green"][passwordStrength]} 
+                                    className={`h-1.5 ${strengthBarClasses[passwordStrength]}`}
                                     />
-                                    <Text fontSize="xs" color={["red", "orange", "yellow", "green", "green"][passwordStrength]}>
+                                    <p className={`text-xs ${strengthTextClasses[passwordStrength]}`}>
                                     {["Very Weak", "Weak", "Fair", "Good", "Strong"][passwordStrength]}
-                                    </Text>
-                                </Box>
+                                    </p>
+                                </div>
                                 )}
 
-
-
-                                {passwordError && <Text fontSize="xs" color="red.500">{passwordErrorMessage}</Text>}
-                            </Box>
+                                {passwordError && <p className="text-xs text-red-500">{passwordErrorMessage}</p>}
+                            </div>
 
                             {/* Confirm Password Input */}
-                            <Box>
-                                <Text fontSize="15px" fontWeight={600} mb={1}>Confirm Password</Text>
-                                <InputGroup>
-                                    <Input 
-                                    ref={confirmPasswordRef} 
+                            <div>
+                                <p className="text-[15px] font-semibold mb-1">Confirm Password</p>
+                                <div className="relative">
+                                    <Input
+                                    ref={confirmPasswordRef}
                                     type={visibleField === "confirmPassword" ? "text" : "password"}
                                     placeholder="Confirm new password"
-                                    isInvalid={confirmPasswordError} errorBorderColor="red.300" 
+                                    aria-invalid={confirmPasswordError || undefined}
                                     aria-label="Confirm Password"
                                     aria-describedby={passwordError ? "password-error" : undefined}
-                                    _focus={{
-                                    outline: "2px solid var(--bright-green)",
-                                    outlineOffset: "2px",
-                                    }}
+                                    className="pr-12 text-black"
                                     />
-                                    <InputRightElement width="3rem">
-                                        <Button
-                                            h="1.5rem"
-                                            size="sm"
-                                            bg="white" // ✅ Default white background
-                                            _hover={{ bg: 'var(--bright-green)' }} 
-                                            _focus={{ boxShadow: "none" }}
-                                            onClick={() => setVisibleField(visibleField === "confirmPassword" ? null : "confirmPassword")}
-                                            variant="ghost"
-                                        >
-                                            {visibleField === "confirmPassword" ? <FaEyeSlash /> : <FaEye />}  {/* ✅ Toggle eye icon */}
-                                        </Button>
-                                    </InputRightElement>
-                                </InputGroup>
-                                {confirmPasswordError && <Text fontSize="xs" color="red.500">{confirmPasswordErrorMessage}</Text>}
-                            </Box>
+                                    <button
+                                        type="button"
+                                        onClick={() => setVisibleField(visibleField === "confirmPassword" ? null : "confirmPassword")}
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex h-6 items-center justify-center rounded-md bg-white px-2 text-gray-700 hover:bg-[var(--bright-green)] focus:outline-none"
+                                    >
+                                        {visibleField === "confirmPassword" ? <FaEyeSlash /> : <FaEye />}
+                                    </button>
+                                </div>
+                                {confirmPasswordError && <p className="text-xs text-red-500">{confirmPasswordErrorMessage}</p>}
+                            </div>
                             {/* Reset Password Button */}
-                            <Button 
-                                type="submit" 
-                                colorScheme="blue" 
-                                width="full"
-                                fontSize="15px"
-                                fontWeight={600}
-                                isLoading={loading}
+                            <button
+                                type="submit"
                                 aria-label="Sign up with email"
-                                _focus={{
-                                outline: "2px solid var(--bright-green)",
-                                outlineOffset: "2px",
-                                }}
+                                data-loading={loading ? "true" : undefined}
+                                disabled={loading}
+                                className="w-full rounded-md bg-blue-500 px-4 py-2 text-[15px] font-semibold text-white hover:bg-blue-600 disabled:opacity-70 focus:[outline:2px_solid_var(--bright-green)] focus:outline-offset-2"
                             >
                                 Reset Password
-                            </Button>
-                        </Stack>
+                            </button>
+                        </div>
                     </form>
-                </Stack>
-            </Box>
-        </Box>
+                </div>
+            </div>
+        </div>
         {/* ✅ Footer stays at bottom */}
-        <Box className="w-full mt-auto bg-footer">
+        <div className="w-full mt-auto bg-footer">
             <Footer />
-        </Box>
-    </Box>
+        </div>
+    </div>
 
   );
 };

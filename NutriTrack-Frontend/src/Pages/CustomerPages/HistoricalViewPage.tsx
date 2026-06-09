@@ -1,6 +1,5 @@
 import HistoricalLineGraph from '@/Components/Sections/CustomerSections/HistoricalLineGraph.js';
 import React, { useEffect, useState } from 'react';
-import { Box, Heading, Text } from '@chakra-ui/react';
 import { Sidenav } from "../../Components/Sections/index.js";
 import { getHistoricalData } from '../../Services/historicalViewServices.js';
 import HistoricalFilterForm from '@/Components/Sections/CustomerSections/HistoricalFilterForm.js';
@@ -19,23 +18,23 @@ const HistoricalViewPage: React.FC = () => {
 
     return (
         <Sidenav>
-            <Box p={8}>
-                <Box bg="white" boxShadow="md" borderRadius="lg" p={0} mb={10}>
-                    <Box bg="var(--dark-green)" borderTopRadius="lg" px={6} py={4}>
-                        <Heading size="lg" color="white">Historical Nutrient Insights</Heading>
-                    </Box>
-                    <Box p={6} color="var(--dark-green)">
-                        <Text fontSize="md" fontWeight="medium">
+            <div className="p-8">
+                <div className="bg-white shadow-md rounded-lg p-0 mb-10">
+                    <div className="bg-[var(--dark-green)] rounded-t-lg px-6 py-4">
+                        <h2 className="text-xl font-bold text-white">Historical Nutrient Insights</h2>
+                    </div>
+                    <div className="p-6 text-[var(--dark-green)]">
+                        <p className="text-base font-medium">
                             Track your nutrition journey over time. Use this dashboard to view your weekly or monthly intake patterns and adjust your habits accordingly.
-                        </Text>
-                    </Box>
-                </Box>
+                        </p>
+                    </div>
+                </div>
 
-                <Box bg="white" boxShadow="md" borderRadius="lg" p={6}>
+                <div className="bg-white shadow-md rounded-lg p-6">
                     <HistoricalFilterForm onSubmit={handleFormSubmit} />
                     <HistoricalLineGraph historicalData={historicalData} />
-                </Box>
-            </Box>
+                </div>
+            </div>
         </Sidenav>
     );
 };

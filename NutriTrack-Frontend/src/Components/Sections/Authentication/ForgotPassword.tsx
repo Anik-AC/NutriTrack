@@ -1,22 +1,19 @@
 "use client";
 
 import { useState, useRef } from "react";
-import {
-  Button,
-  Input,
-  Stack,
-  Text,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  useToast,
-} from "@chakra-ui/react";
+import { X } from "lucide-react";
 
 import {AxiosError} from "axios";
-import axiosInstance from "../../../utils/axiosInstance.ts"; 
+import axiosInstance from "../../../utils/axiosInstance.ts";
+import { notify } from "../../../utils/notify.ts";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../../ui/dialog";
+import { Input } from "../../ui/input";
 
 interface ForgotPasswordProps {
   open: boolean;
@@ -25,7 +22,7 @@ interface ForgotPasswordProps {
 
 const ForgotPassword = ({ open, handleClose }: ForgotPasswordProps) => {
   const emailRef = useRef<HTMLInputElement>(null);
-  const toast = useToast();
+  const toast = notify;
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -59,13 +56,12 @@ const ForgotPassword = ({ open, handleClose }: ForgotPasswordProps) => {
 
       // ✅ Automatically close modal after toast appears
       setTimeout(handleClose, 300);
-    } 
+    }
     catch (err) {
       // Ensure 'err' is treated as an AxiosError
       const error = err as AxiosError<{ message: string }>;
-  
+
       console.error("Login Error:", error.response?.data?.message);
-      // alert(error.response?.data?.message || "Login failed.");
       toast({
         title: "Error",
         description: error.response?.data?.message || "Something went wrong. Please try again.",
@@ -74,7 +70,7 @@ const ForgotPassword = ({ open, handleClose }: ForgotPasswordProps) => {
         isClosable: true,
         position: "top",
       });
-      
+
       // ✅ Automatically close modal even on error
       setTimeout(handleClose, 300);
     }
@@ -86,45 +82,45 @@ const ForgotPassword = ({ open, handleClose }: ForgotPasswordProps) => {
   if (!open) return null; // Prevents rendering when `open` is false
 
   return (
-    <Modal isOpen={open} onClose={handleClose} isCentered>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader lineHeight={1.1} fontSize={{ base: '2xl', md: '3xl' }}>Forgot your password?</ModalHeader>
-        <ModalCloseButton 
-          color="black" 
-          right={4}
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
+      <DialogContent showCloseButton={false} className="sm:max-w-md">
+        <button
+          type="button"
+          onClick={handleClose}
           aria-label="Close modal"
           tabIndex={0}
-          borderRadius="6px"
-          onClick={handleClose}
-          _hover={{
-            color : "darkred",
-            bg: "transparent",
-            outline: "2px solid darkred",
-            outlineOffset: "2px",
-          }}
-          _focus={{
-            outline: "2px solid var(--bright-green)",
-            outlineOffset: "2px",
-          }}
-        />
-
-        <ModalBody>
-          <Text mb={3}>
+          className="absolute right-4 top-4 rounded-md p-1 text-black hover:text-[darkred] hover:[outline:2px_solid_darkred] hover:outline-offset-2 focus:[outline:2px_solid_var(--bright-green)] focus:outline-offset-2"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <DialogHeader>
+          <DialogTitle className="leading-[1.1] text-2xl md:text-3xl">Forgot your password?</DialogTitle>
+          <DialogDescription className="mb-3 text-foreground">
             Enter your account's email address, and we'll send you a link to reset your password.
-          </Text>
+          </DialogDescription>
+        </DialogHeader>
 
-          <form onSubmit={handleSubmit}>
-            <Stack spacing={4}>
-              <Input ref={emailRef} type="email" placeholder="your-email@example.com" _placeholder={{ color: 'gray.500' }} required autoFocus />
-              <Button type="submit" colorScheme="blue" isLoading={loading}>
-                Continue
-              </Button>
-            </Stack>
-          </form>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+        <form onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-4">
+            <Input
+              ref={emailRef}
+              type="email"
+              placeholder="your-email@example.com"
+              required
+              autoFocus
+            />
+            <button
+              type="submit"
+              data-loading={loading ? "true" : undefined}
+              disabled={loading}
+              className="w-full rounded-md bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600 disabled:opacity-70 focus:[outline:2px_solid_var(--bright-green)] focus:outline-offset-2"
+            >
+              Continue
+            </button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

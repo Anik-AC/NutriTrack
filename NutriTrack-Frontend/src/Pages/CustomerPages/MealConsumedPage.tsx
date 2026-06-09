@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {  Button, Box, Container, Heading, Text, Spinner, VStack,SimpleGrid, HStack} from '@chakra-ui/react';
-import { Stat,StatLabel, StatNumber} from "@chakra-ui/stat"
+import { Loader2 } from 'lucide-react';
 import {Sidenav} from "../../Components/Sections";
 
 interface FoodDetails {
@@ -15,6 +14,13 @@ interface FoodDetails {
     fiber: number;
   };
 }
+
+const Stat = ({ label, value }: { label: React.ReactNode; value: React.ReactNode }) => (
+  <div className="p-4 shadow-md rounded-md">
+    <div className="text-sm text-muted-foreground">{label}</div>
+    <div className="text-2xl font-semibold">{value}</div>
+  </div>
+);
 
 const MealsConsumedPage = () => {
   const navigate = useNavigate();
@@ -46,9 +52,9 @@ const MealsConsumedPage = () => {
         setLoading(false);
       }
     };
-   
+
     fetchMeals();
-    
+
   }, []);
 
 
@@ -95,106 +101,91 @@ const MealsConsumedPage = () => {
   if (loading) {
     return (
       <Sidenav>
-      <Container centerContent>
-        <Spinner size="xl" />
-        <Text mt={4}>Loading meals...</Text>
-      </Container>
+      <div className="flex flex-col items-center">
+        <Loader2 className="w-10 h-10 animate-spin" />
+        <p className="mt-4">Loading meals...</p>
+      </div>
       </Sidenav>
     );
   }
 return (
     <Sidenav>
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={0} mb={10}>
-        <Box bg="var(--dark-green)" borderTopRadius="lg" px={6} py={4}>
-          <Heading size="lg" color="white">Meals Consumed Today</Heading>
-        </Box>
-        <Box p={6} borderBottomRadius="lg" color="var(--dark-green)">
-          <Text fontSize="md" fontWeight="medium">
+      <div className="bg-white shadow-md rounded-lg p-0 mb-10">
+        <div className="bg-[var(--dark-green)] rounded-t-lg px-6 py-4">
+          <h2 className="text-xl font-bold text-white">Meals Consumed Today</h2>
+        </div>
+        <div className="p-6 rounded-b-lg text-[var(--dark-green)]">
+          <p className="text-base font-medium">
             Review all meals you've consumed today. Check total calories, proteins, carbs, and fats to stay on track with your goals.
-          </Text>
-        </Box>
-      </Box>
-    <Box bg="white" boxShadow="md" borderRadius="lg" p={6}>
-    <Container maxW="container.lg" py={6}>
-     <HStack justifyContent="space-between" mb={6}>
-        <Heading as="h1" size="xl">Tracked Meals</Heading>
-        <HStack>
-          <Button mt={4} data-testid="Search-Food" colorScheme="blue" onClick={() => navigate('/track')}>Search Food</Button>
-          <Button mt={4} data-testid="Add-Your-Own-Meal" colorScheme="green" onClick={() => navigate('/customFood')}>Add Your Own Meal</Button>
-        </HStack>
-      </HStack>
-      
+          </p>
+        </div>
+      </div>
+    <div className="bg-white shadow-md rounded-lg p-6">
+    <div className="mx-auto w-full max-w-5xl py-6">
+     <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Tracked Meals</h1>
+        <div className="flex items-center gap-2">
+          <button type="button" data-testid="Search-Food" className="mt-4 rounded-md bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600" onClick={() => navigate('/track')}>Search Food</button>
+          <button type="button" data-testid="Add-Your-Own-Meal" className="mt-4 rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700" onClick={() => navigate('/customFood')}>Add Your Own Meal</button>
+        </div>
+      </div>
+
       {error && (
-        <Container centerContent>
-          <Text color="red.500">{error}</Text>
-        </Container>
+        <div className="flex flex-col items-center">
+          <p className="text-red-500">{error}</p>
+        </div>
       )}
 
 
       {/* Loop through the categories and render them */}
       {Object.keys(categorizedMeals).map((mealTime) => (
         categorizedMeals[mealTime as keyof typeof categorizedMeals].length > 0 && (
-          <Box key={mealTime} mb={8}>
-            <Heading size="lg" mb={4}>
+          <div key={mealTime} className="mb-8">
+            <h3 className="text-xl font-bold mb-4">
               {mealTime.charAt(0).toUpperCase() + mealTime.slice(1)}
-            </Heading>
-            {/* Custom Divider using Box */}
-            <Box width="100%" height="1px" bg="gray.300" my={4} />
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+            </h3>
+            {/* Custom Divider using div */}
+            <div className="w-full h-px bg-gray-300 my-4" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {categorizedMeals[mealTime as keyof typeof categorizedMeals].map((meal, index) => (
-                <Box key={index} p={5} shadow="md" borderWidth="1px" borderRadius="md">
-                  <VStack align="start" spacing={3}>
-                    <Heading size="md">{meal.foodName.charAt(0).toUpperCase() + meal.foodName.slice(1)}</Heading>
-                    <Text fontWeight="bold">Calories: {meal.details.calories}</Text>
-                    <Text>Protein: {meal.details.protein}g</Text>
-                    <Text>Carbohydrates: {meal.details.carbohydrates}g</Text>
-                    <Text>Fat: {meal.details.fat}g</Text>
-                    <Text>Fiber: {meal.details.fiber}g</Text>
-                  </VStack>
-                </Box>
+                <div key={index} className="p-5 shadow-md border rounded-md">
+                  <div className="flex flex-col items-start gap-3">
+                    <h4 className="text-lg font-bold">{meal.foodName.charAt(0).toUpperCase() + meal.foodName.slice(1)}</h4>
+                    <p className="font-bold">Calories: {meal.details.calories}</p>
+                    <p>Protein: {meal.details.protein}g</p>
+                    <p>Carbohydrates: {meal.details.carbohydrates}g</p>
+                    <p>Fat: {meal.details.fat}g</p>
+                    <p>Fiber: {meal.details.fiber}g</p>
+                  </div>
+                </div>
               ))}
-            </SimpleGrid>
-          </Box>
+            </div>
+          </div>
         )
       ))}
       {/* Display the totals */}
-      <Box mt={8}>
-  <Heading size="lg" mb={4}>Total Nutrients</Heading>
+      <div className="mt-8">
+  <h3 className="text-xl font-bold mb-4">Total Nutrients</h3>
 
-  <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {/* Total Calories */}
-    <Stat p={4} boxShadow="md" borderRadius="md">
-      <StatLabel>Total Calories</StatLabel>
-      <StatNumber>{totalNutrients.calories}</StatNumber>
-    </Stat>
+    <Stat label="Total Calories" value={totalNutrients.calories} />
 
     {/* Total Protein */}
-    <Stat p={4} boxShadow="md" borderRadius="md">
-      <StatLabel>Total Protein</StatLabel>
-      <StatNumber>{totalNutrients.protein}g</StatNumber>
-    </Stat>
+    <Stat label="Total Protein" value={`${totalNutrients.protein}g`} />
 
     {/* Total Carbohydrates */}
-    <Stat p={4} boxShadow="md" borderRadius="md">
-      <StatLabel>Total Carbohydrates</StatLabel>
-      <StatNumber>{totalNutrients.carbohydrates}g</StatNumber>
-    </Stat>
+    <Stat label="Total Carbohydrates" value={`${totalNutrients.carbohydrates}g`} />
 
     {/* Total Fat */}
-    <Stat p={4} boxShadow="md" borderRadius="md">
-      <StatLabel>Total Fat</StatLabel>
-      <StatNumber>{totalNutrients.fat}g</StatNumber>
-    </Stat>
+    <Stat label="Total Fat" value={`${totalNutrients.fat}g`} />
 
     {/* Total Fiber */}
-    <Stat p={4} boxShadow="md" borderRadius="md">
-      <StatLabel>Total Fiber</StatLabel>
-      <StatNumber>{totalNutrients.fiber}g</StatNumber>
-    </Stat>
-  </SimpleGrid>
-</Box>
-    </Container>
-  </Box>
+    <Stat label="Total Fiber" value={`${totalNutrients.fiber}g`} />
+  </div>
+</div>
+    </div>
+  </div>
   </Sidenav>
   );
 };

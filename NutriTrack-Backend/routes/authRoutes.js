@@ -16,7 +16,48 @@ import { User } from "../models/index.js";
 
 const router = express.Router();
 
+/**
+ * @openapi
+ * /auth/register:
+ *   post:
+ *     summary: Register a new user with email + password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               password: { type: string, minLength: 8 }
+ *     responses:
+ *       201: { description: User registered }
+ *       400: { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+ */
 router.post("/register", register);
+
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     summary: Log in with email + password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               password: { type: string }
+ *     responses:
+ *       200: { description: Authenticated; returns JWT + profile }
+ *       401: { description: Invalid credentials, content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+ */
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);

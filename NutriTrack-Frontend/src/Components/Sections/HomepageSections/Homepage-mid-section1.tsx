@@ -1,16 +1,6 @@
 'use client'
 
 import {
-  Box,
-  chakra,
-  Grid,
-  GridItem,
-  Container,
-  Flex,
-  Icon,
-  Heading,
-} from '@chakra-ui/react'
-import {
   MdFastfood,
   MdOutlineTrackChanges,
   MdPerson,
@@ -30,57 +20,35 @@ interface FeatureProps {
 }
 
 const Feature = ({ heading, text, icon }: FeatureProps) => {
+  const IconComp = icon;
   return (
-    <GridItem textAlign="center">
-      <Flex
-        justify="center"
-        align="center"
-        bg="var(--dark-green)"
-        borderRadius="full"
-        w={16}
-        h={16}
-        mb={4}
-        mx="auto" // center the icon
-      >
-        <Icon as={icon} w={8} h={8} color="white" />
-      </Flex>
-      <chakra.h3 fontSize="xl" fontWeight="600" mb={2}>
+    <div className="text-center">
+      <div className="flex justify-center items-center bg-[var(--dark-green)] rounded-full w-16 h-16 mb-4 mx-auto">
+        <IconComp className="w-8 h-8 text-white" />
+      </div>
+      <h3 className="text-xl font-semibold mb-2">
         {heading}
-      </chakra.h3>
-      <chakra.p fontSize="md" color="gray.600">
+      </h3>
+      <p className="text-base text-gray-600">
         {text}
-      </chakra.p>
-    </GridItem>
+      </p>
+    </div>
   )
 }
 
 export default function HomepageMidSection1() {
   return (
     <>
-    <Box bg="yellow.400" w="full" py={6}>
-        <Heading
-            as="h2"
-            fontSize={{ base: "clamp(4rem, 10vw, 6rem)" }}
-            textAlign="center"
-            fontFamily={"Deacon, sans-serif"}
-            fontWeight={800}
-            color="var(--dark-green)"
-            letterSpacing="wide"
-        >
+    <div className="bg-yellow-400 w-full py-6">
+        <h2 className="text-[clamp(4rem,10vw,6rem)] text-center font-[Deacon,sans-serif] font-extrabold text-[var(--dark-green)] tracking-wide">
             FEATURES
-        </Heading>
-    </Box>
+        </h2>
+    </div>
 
 
-    <Flex width="100%" bg="#FFF9DB"  py={12}>
-      <Box as={Container} maxW="7xl" px={6}>
-        <Grid
-          templateColumns={{
-            base: 'repeat(1, 1fr)',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(4, 1fr)',
-          }}
-          gap={{ base: 10, sm: 12, md: 16 }}>
+    <div className="flex w-full bg-[#FFF9DB] py-12">
+      <div className="mx-auto w-full max-w-7xl px-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 sm:gap-12 md:gap-16">
           <Feature
             icon={MdFastfood}
             heading={'Personalized Meal Plans'}
@@ -121,9 +89,9 @@ export default function HomepageMidSection1() {
             heading={'Dashboard Insights'}
             text={'Access a comprehensive dashboard with insights into your daily calorie needs, BMI, and protein requirements.'}
           />
-        </Grid>
-      </Box>
-    </Flex>
+        </div>
+      </div>
+    </div>
     </>
   )
 }

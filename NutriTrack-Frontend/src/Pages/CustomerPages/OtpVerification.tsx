@@ -1,8 +1,8 @@
 import { useState, useEffect, useContext } from "react";
-import { Box, Button, Text, useToast, Container } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import OtpInput from "react-otp-input"; // ✅ Import react-otp-input
 import axiosInstance from "../../utils/axiosInstance";
+import { notify } from "../../utils/notify";
 import { UserContext } from "../../contexts/UserContext";
 import { Sidenav } from "../../Components/Sections";
 
@@ -10,7 +10,7 @@ const OtpVerification = () => {
   const [otp, setOtp] = useState(""); // ✅ Single state for OTP input
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(30);
-  const toast = useToast();
+  const toast = notify;
   const navigate = useNavigate();
   const { loggedUser, setLoggedUser } = useContext(UserContext) ?? {};
   const token = loggedUser?.token; // ✅ Use token for authentication
@@ -107,15 +107,15 @@ const OtpVerification = () => {
 
   return (
     <Sidenav>
-      <Box className="w-full h-[calc(100vh-80px)] flex-grow pt-[80px] bg-alternate flex flex-col items-center">
-        <Container maxW="md" p={6} boxShadow="md" borderRadius="md" bg="white">
-        <Text fontSize="2xl" fontWeight="bold">Email Verification</Text>
-        <Text fontSize="md" color="gray.600" marginBottom={3}>
+      <div className="w-full h-[calc(100vh-80px)] flex-grow pt-[80px] bg-alternate flex flex-col items-center">
+        <div className="mx-auto w-full max-w-md p-6 shadow-md rounded-md bg-white">
+        <p className="text-2xl font-bold">Email Verification</p>
+        <p className="text-base text-gray-600 mb-3">
           You need to verify your email account using the OTP to continue.
-        </Text>
-        <Text fontSize="sm" color="gray.500" marginBottom={5}>
+        </p>
+        <p className="text-sm text-gray-500 mb-5">
           Enter the 6-digit OTP sent to your email.
-        </Text>
+        </p>
 
           {/* ✅ Smooth OTP Input */}
           <OtpInput
@@ -130,35 +130,30 @@ const OtpVerification = () => {
               border: "1px solid gray",
               borderRadius: "5px",
               backgroundColor: "#f1f1f1",
-              margin: "0 0.5rem", 
+              margin: "0 0.5rem",
             }}
             renderInput={(props) => <input {...props} />}
           />
 
-          <Button 
-          mt={4} colorScheme="blue" 
-          isLoading={loading} 
-          width="full" 
-          onClick={handleVerifyOtp}
+          <button
+            type="button"
+            className="mt-4 w-full rounded-md bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600 disabled:opacity-70"
+            disabled={loading}
+            onClick={handleVerifyOtp}
           >
             Verify OTP
-          </Button>
+          </button>
 
-          <Button 
-          mt={2} 
-          variant="link" 
-          onClick={handleResendOtp} 
-          isDisabled={resendTimer > 0}
-          _hover={{
-            textDecoration: "underline",
-            boxShadow: "none",
-            bg: "transparent"
-          }}
+          <button
+            type="button"
+            onClick={handleResendOtp}
+            disabled={resendTimer > 0}
+            className="mt-2 block bg-transparent p-0 text-blue-500 hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
           >
             {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : "Resend OTP"}
-          </Button>
-        </Container>
-      </Box>
+          </button>
+        </div>
+      </div>
     </Sidenav>
   );
 };

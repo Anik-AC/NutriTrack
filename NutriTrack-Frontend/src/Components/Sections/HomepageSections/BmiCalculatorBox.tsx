@@ -1,15 +1,8 @@
 import { useState } from 'react';
-import {
-  Box,
-  Heading,
-  Text,
-  Slider,
-  SliderTrack,
-  SliderFilledTrack,
-  SliderThumb,
-  Flex,
-  Stack,
-} from '@chakra-ui/react';
+import { Slider } from '../../ui/slider';
+
+const sliderClasses =
+  "[&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:bg-white/30 [&_[data-slot=slider-range]]:bg-[var(--bright-green)] [&_[data-slot=slider-thumb]]:size-6 [&_[data-slot=slider-thumb]]:border-[var(--bright-green)]";
 
 const BmiCalculatorBox = () => {
   const [height, setHeight] = useState(170); // cm
@@ -27,70 +20,50 @@ const BmiCalculatorBox = () => {
 
   return (
     <>
-    <Box bg="var(--bright-green)" w="full" py={6}>
-        <Heading
-            as="h2"
-            fontSize={{ base: "clamp(4rem, 10vw, 5rem)" }}
-            textAlign="center"
-            fontFamily={"Deacon, sans-serif"}
-            fontWeight={800}
-            color="var(--dark-green)"
-            letterSpacing="wide"
-        >
+    <div className="bg-[var(--bright-green)] w-full py-6">
+        <h2 className="text-[clamp(4rem,10vw,5rem)] text-center font-[Deacon,sans-serif] font-extrabold text-[var(--dark-green)] tracking-wide">
             CHECK YOUR BMI
-        </Heading>
-    </Box>
-    <Box bg="var(--dark-green)" color="white" px={8} py={20} boxShadow="md">
-      <Flex direction={{ base: 'column', md: 'row' }} gap={12}>
+        </h2>
+    </div>
+    <div className="bg-[var(--dark-green)] text-white px-8 py-20 shadow-md">
+      <div className="flex flex-col md:flex-row gap-12">
         {/* Left Side - Sliders */}
-        <Box flex={1}>
-          <Stack spacing={6}>
-            <Box>
-              <Heading fontSize="4xl" color="var(--bright-green)">Height (cm)</Heading>
-              <Text mt={1} fontSize="2xl" >{height} cm</Text>
+        <div className="flex-1">
+          <div className="flex flex-col gap-6">
+            <div>
+              <h3 className="text-4xl font-bold text-[var(--bright-green)]">Height (cm)</h3>
+              <p className="mt-1 text-2xl">{height} cm</p>
               <Slider
                 min={100}
                 max={220}
-                value={height}
-                onChange={setHeight}
-                colorScheme="green"
-                size="lg"
-              >
-                <SliderTrack h="8px">
-                  <SliderFilledTrack />
-                </SliderTrack>
-                <SliderThumb boxSize={6} />
-              </Slider>
-            </Box>
+                value={[height]}
+                onValueChange={(v) => setHeight(v[0])}
+                className={sliderClasses}
+              />
+            </div>
 
-            <Box>
-              <Heading fontSize="4xl" color="var(--bright-green)">Weight (kg)</Heading>
-              <Text mt={1} fontSize="2xl">{weight} kg</Text>
+            <div>
+              <h3 className="text-4xl font-bold text-[var(--bright-green)]">Weight (kg)</h3>
+              <p className="mt-1 text-2xl">{weight} kg</p>
               <Slider
                 min={30}
                 max={150}
-                value={weight}
-                onChange={setWeight}
-                colorScheme="green"
-                size="lg"
-              >
-                <SliderTrack h="8px">
-                  <SliderFilledTrack />
-                </SliderTrack>
-                <SliderThumb boxSize={6} />
-              </Slider>
-            </Box>
-          </Stack>
-        </Box>
+                value={[weight]}
+                onValueChange={(v) => setWeight(v[0])}
+                className={sliderClasses}
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Right Side - BMI Display */}
-        <Box flex={1} pt={6} pl={8}>
-          <Heading fontSize="4xl" color="var(--bright-green)" mb={4}>Your BMI</Heading>
-          <Text fontSize="7xl" fontWeight="bold" mb={2}>{bmi}</Text>
-          <Text fontSize="2xl">{getBmiFeedback(bmi)}</Text>
-        </Box>
-      </Flex>
-    </Box>
+        <div className="flex-1 pt-6 pl-8">
+          <h3 className="text-4xl font-bold text-[var(--bright-green)] mb-4">Your BMI</h3>
+          <p className="text-7xl font-bold mb-2">{bmi}</p>
+          <p className="text-2xl">{getBmiFeedback(bmi)}</p>
+        </div>
+      </div>
+    </div>
     </>
   );
 };

@@ -1,32 +1,21 @@
 import { useEffect, useState, useContext } from "react";
-import {
-  Box,
-  Heading,
-  Text,
-  Grid,
-  Card,
-  CardBody,
-  Image,
-  Button,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
-  Divider,
-  Flex,
-  SimpleGrid,
-  useToast,
-} from "@chakra-ui/react";
 import axiosInstance from "../../utils/axiosInstance";
+import { notify } from "../../utils/notify";
 import { Sidenav } from "../../Components/Sections";
 import { UserContext } from "../../contexts/UserContext";
 import { coach_1, coach_2, coach_3, coach_4, coach_5 } from "@/assets";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../../styles/coachCalendar.css";
+import { Card, CardContent } from "../../Components/ui/card";
+import { Separator } from "../../Components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../../Components/ui/dialog";
+import { useDisclosure } from "../../hooks/use-disclosure";
 
 interface Coach {
   _id: string;
@@ -60,7 +49,7 @@ const BookCoach = () => {
   const { loggedUser } = useContext(UserContext) ?? {};
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  const toast = useToast();
+  const toast = notify;
 
   useEffect(() => {
     const fetchCoaches = async () => {
@@ -90,7 +79,7 @@ const BookCoach = () => {
       console.error("Error fetching coaches:", err);
     }
   };
-  
+
 
   const handleOpenModal = (coach: Coach) => {
     setSelectedCoach(coach);
@@ -109,7 +98,7 @@ const BookCoach = () => {
       });
       return;
     }
-  
+
     try {
       const res = await axiosInstance.post(
         "/api/booking/book-appointment",
@@ -124,7 +113,7 @@ const BookCoach = () => {
           },
         }
       );
-  
+
       if (res.data.success) {
         toast({
           title: "Appointment booked! Redirecting to payment...",
@@ -134,7 +123,7 @@ const BookCoach = () => {
         });
 
         fetchCoaches();
-          
+
         // Now get the payment Stripe URL
         const paymentRes = await axiosInstance.post(
           "/api/booking/payment-stripe",
@@ -147,7 +136,7 @@ const BookCoach = () => {
             },
           }
         );
-  
+
         if (paymentRes.data.session_url) {
             window.location.href = paymentRes.data.session_url;
           } else {
@@ -157,8 +146,8 @@ const BookCoach = () => {
               duration: 3000,
               isClosable: true,
             });
-          }          
-  
+          }
+
       } else {
         toast({
           title: res.data.message || "Failed to book appointment",
@@ -167,7 +156,7 @@ const BookCoach = () => {
           isClosable: true,
         });
       }
-  
+
     } catch (error) {
       console.error("Booking failed", error);
       toast({
@@ -177,7 +166,7 @@ const BookCoach = () => {
         isClosable: true,
       });
     }
-  };  
+  };
 
   const getAvailableSlots = (dateStr: string) => {
     if (!selectedCoach) return [];
@@ -207,56 +196,55 @@ const BookCoach = () => {
 
   return (
     <Sidenav>
-      <Box p={8}>
-        <Box bg="white" boxShadow="md" borderRadius="lg" p={0} mb={10}>
-          <Box bg="var(--dark-green)" borderTopRadius="lg" px={6} py={4}>
-            <Heading size="lg" color="white">Book a Coach</Heading>
-          </Box>
-          <Box p={6} color="var(--dark-green)">
-            <Text fontSize="md" fontWeight="medium">
+      <div className="p-8">
+        <div className="bg-white shadow-md rounded-lg p-0 mb-10">
+          <div className="bg-[var(--dark-green)] rounded-t-lg px-6 py-4">
+            <h2 className="text-xl font-bold text-white">Book a Coach</h2>
+          </div>
+          <div className="p-6 text-[var(--dark-green)]">
+            <p className="text-base font-medium">
               Explore our certified coaches to help you with your fitness and nutrition goals. Click "Book" to view more details and start your journey.
-            </Text>
-          </Box>
-        </Box>
+            </p>
+          </div>
+        </div>
 
-        <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={6}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {coaches.map((coach, index) => (
-            <Card key={coach._id} boxShadow="md" borderRadius="md">
-              <CardBody>
-                <Image src={coachImages[index % coachImages.length]} alt={coach.name} borderRadius="md" objectFit="cover" objectPosition="top" w="100%" h="180px" />
-                <Heading size="md" mt={4}>{coach.name}</Heading>
-                <Text fontSize="sm" color="gray.500">{coach.speciality}</Text>
-                <Button mt={4} size="sm" colorScheme="blue" onClick={() => handleOpenModal(coach)}>Book</Button>
-              </CardBody>
+            <Card key={coach._id} className="shadow-md rounded-md">
+              <CardContent>
+                <img src={coachImages[index % coachImages.length]} alt={coach.name} className="rounded-md object-cover object-top w-full h-[180px]" />
+                <h3 className="text-lg font-bold mt-4">{coach.name}</h3>
+                <p className="text-sm text-gray-500">{coach.speciality}</p>
+                <button type="button" className="mt-4 rounded-md bg-blue-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-600" onClick={() => handleOpenModal(coach)}>Book</button>
+              </CardContent>
             </Card>
           ))}
-        </Grid>
+        </div>
 
-        <Modal isOpen={isOpen} onClose={onClose} isCentered size="4xl">
-          <ModalOverlay />
-          <ModalContent borderRadius="lg" py={6} px={4} bg="white">
-            <ModalHeader fontSize="xl" fontWeight="bold" color="gray.700">{selectedCoach?.name}</ModalHeader>
-            <ModalCloseButton color="gray.500" />
-            <ModalBody>
+        <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto py-6 px-4 bg-white">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-gray-700">{selectedCoach?.name}</DialogTitle>
+            </DialogHeader>
               {selectedCoach && (
-                <Box>
-                  <Image src={coachImages[coaches.findIndex(c => c._id === selectedCoach._id) % coachImages.length]} alt={selectedCoach.name} borderRadius="md" objectFit="cover" objectPosition="top" w="100%" h="240px" mb={4} />
+                <div>
+                  <img src={coachImages[coaches.findIndex(c => c._id === selectedCoach._id) % coachImages.length]} alt={selectedCoach.name} className="rounded-md object-cover object-top w-full h-[240px] mb-4" />
 
-                  <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={6}>
-                    <Box><Text fontWeight="semibold">Speciality:</Text><Text>{selectedCoach.speciality}</Text></Box>
-                    <Box><Text fontWeight="semibold">Experience:</Text><Text>{selectedCoach.experience}</Text></Box>
-                    <Divider gridColumn="1 / -1" borderColor="gray.200" />
-                    <Box><Text fontWeight="semibold">Degree:</Text><Text>{selectedCoach.degree}</Text></Box>
-                    <Box><Text fontWeight="semibold">Fees:</Text><Text>${selectedCoach.fees}</Text></Box>
-                    <Divider gridColumn="1 / -1" borderColor="gray.200" />
-                    <Box><Text fontWeight="semibold">About:</Text><Text>{selectedCoach.about}</Text></Box>
-                    <Box><Text fontWeight="semibold">Location:</Text><Text>{selectedCoach.address.city}, {selectedCoach.address.state || ""}</Text></Box>
-                    <Divider gridColumn="1 / -1" borderColor="gray.200" />
-                  </SimpleGrid>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div><p className="font-semibold">Speciality:</p><p>{selectedCoach.speciality}</p></div>
+                    <div><p className="font-semibold">Experience:</p><p>{selectedCoach.experience}</p></div>
+                    <Separator className="col-span-full" />
+                    <div><p className="font-semibold">Degree:</p><p>{selectedCoach.degree}</p></div>
+                    <div><p className="font-semibold">Fees:</p><p>${selectedCoach.fees}</p></div>
+                    <Separator className="col-span-full" />
+                    <div><p className="font-semibold">About:</p><p>{selectedCoach.about}</p></div>
+                    <div><p className="font-semibold">Location:</p><p>{selectedCoach.address.city}, {selectedCoach.address.state || ""}</p></div>
+                    <Separator className="col-span-full" />
+                  </div>
 
-                  <Flex gap={6} direction={{ base: "column", md: "row" }}>
-                    <Box>
-                      <Text fontWeight="bold" mb={2}>Select Date</Text>
+                  <div className="flex gap-6 flex-col md:flex-row">
+                    <div>
+                      <p className="font-bold mb-2">Select Date</p>
                       <Calendar
                         onChange={(val) => setSelectedDate(val as Date)}
                         tileClassName={tileClassName}
@@ -269,38 +257,39 @@ const BookCoach = () => {
                         calendarType="gregory"
                         navigationLabel={({ date }) => `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`}
                       />
-                    </Box>
-                    <Box flex={1}>
+                    </div>
+                    <div className="flex-1">
                       {selectedDate && (
                         <>
-                          <Text fontWeight="bold" mb={2}>Available Slots for {selectedDate.toDateString()}</Text>
-                          <Flex wrap="wrap" gap={2}>
+                          <p className="font-bold mb-2">Available Slots for {selectedDate.toDateString()}</p>
+                          <div className="flex flex-wrap gap-2">
                             {getAvailableSlots(selectedDate.toISOString().split("T")[0]).map((slot) => (
-                              <Button
+                              <button
                                 key={slot}
-                                size="sm"
-                                variant={selectedSlot === slot ? "solid" : "outline"}
-                                colorScheme="green"
+                                type="button"
                                 onClick={() => setSelectedSlot(slot)}
-                                backgroundColor={selectedSlot === slot ? "var(--dark-green)" : undefined}
+                                className={`rounded-md px-3 py-1.5 text-sm font-semibold border ${
+                                  selectedSlot === slot
+                                    ? "bg-[var(--dark-green)] text-white border-[var(--dark-green)]"
+                                    : "border-green-600 text-green-700 hover:bg-green-50"
+                                }`}
                               >
                                 {slot}
-                              </Button>
+                              </button>
                             ))}
-                          </Flex>
+                          </div>
                           {selectedSlot && (
-                            <Button mt={6} colorScheme="green" bg="var(--dark-green)" onClick={handleBook}>Confirm Booking</Button>
+                            <button type="button" className="mt-6 rounded-md bg-[var(--dark-green)] px-4 py-2 font-semibold text-white hover:opacity-90" onClick={handleBook}>Confirm Booking</button>
                           )}
                         </>
                       )}
-                    </Box>
-                  </Flex>
-                </Box>
+                    </div>
+                  </div>
+                </div>
               )}
-            </ModalBody>
-          </ModalContent>
-        </Modal>
-      </Box>
+          </DialogContent>
+        </Dialog>
+      </div>
     </Sidenav>
   );
 };

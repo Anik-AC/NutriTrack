@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { searchFoodAPI, fetchFoodDetailsAPI } from "../../Services/nutritionixAPI";
-import { Input, Box, Text, Image, VStack } from "@chakra-ui/react";
+import { Input } from "../../Components/ui/input";
 // import '../App.css';
 
 interface TrackSearchProps {
@@ -18,7 +18,7 @@ const TrackSearch: React.FC<TrackSearchProps> = ({ setSelectedFood }) => {
   const searchFood = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const input = event.target.value;
     setQuery(input);
-    
+
     if (!input.length) {
       setFoodItems([]);
       return;
@@ -49,45 +49,34 @@ const TrackSearch: React.FC<TrackSearchProps> = ({ setSelectedFood }) => {
 
 
 return (
-  <Box className="search" p={4}>
+  <div className="search p-4">
       <Input
-        className="search-inp"
+        className="search-inp h-11 text-base mb-4"
         onChange={searchFood}
         type="search"
         placeholder="Search Food Item"
         value={query}
-        size="lg"
-        mb={4}
       />
 
       {foodItems.length > 0 && (
-        <VStack align="stretch" spacing={3}>
+        <div className="flex flex-col items-stretch gap-3">
           {foodItems.map((item, index) => (
-            <Box
+            <div
               key={index}
               onClick={() => fetchFoodDetails(item.food_name)}
-              display="flex"
-              alignItems="center"
-              cursor="pointer"
-              p={2}
-              border="1px"
-              borderColor="gray.200"
-              borderRadius="md"
-              _hover={{ bg: "gray.100" }}
+              className="flex items-center cursor-pointer p-2 border border-gray-200 rounded-md hover:bg-gray-100"
             >
-              <Image
+              <img
                 src={item.photo.thumb}
                 alt={item.food_name}
-                boxSize="40px"
-                objectFit="cover"
-                mr={3}
+                className="w-10 h-10 object-cover mr-3"
               />
-              <Text>{item.food_name}</Text>
-            </Box>
+              <p>{item.food_name}</p>
+            </div>
           ))}
-        </VStack>
+        </div>
       )}
-    </Box>
+    </div>
 );
 };
 

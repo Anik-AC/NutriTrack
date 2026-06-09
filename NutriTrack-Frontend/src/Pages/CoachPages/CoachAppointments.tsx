@@ -1,34 +1,26 @@
 import { useEffect, useState, useContext } from "react";
-import {
-  Box,
-  Heading,
-  Text,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  TableContainer,
-  Icon,
-  Spinner,
-  useToast,
-  Button,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalCloseButton,
-  useDisclosure,
-  Flex,
-} from "@chakra-ui/react";
-import { CheckCircleIcon, CloseIcon } from "@chakra-ui/icons";
+import { CheckCircle2, X, Loader2 } from "lucide-react";
 import { MdEdit } from "react-icons/md";
 import { CoachNav } from "../../Components/Sections";
 import axiosInstance from "../../utils/axiosInstance";
+import { notify } from "../../utils/notify";
 import { UserContext } from "../../contexts/UserContext";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../Components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../Components/ui/dialog";
+import { useDisclosure } from "../../hooks/use-disclosure";
 
 interface Appointment {
   _id: string;
@@ -49,7 +41,7 @@ const CoachAppointments = () => {
   const [loading, setLoading] = useState(true);
   const [showCancelled, setShowCancelled] = useState(false);
   const { loggedUser } = useContext(UserContext) ?? {};
-  const toast = useToast();
+  const toast = notify;
   const {
     isOpen: isCancelOpen,
     onOpen: onCancelOpen,
@@ -151,160 +143,160 @@ const CoachAppointments = () => {
 
   return (
     <CoachNav>
-      <Box p={8}>
-        <Box bg="white" boxShadow="md" borderRadius="lg" p={0} mb={10}>
-          <Box bg="var(--dark-green)" borderTopRadius="lg" px={6} py={4}>
-            <Heading size="lg" color="white">Coach Appointments</Heading>
-          </Box>
-          <Box p={6} color="var(--dark-green)">
-            <Text fontSize="md" fontWeight="medium">
+      <div className="p-8">
+        <div className="bg-white shadow-md rounded-lg p-0 mb-10">
+          <div className="bg-[var(--dark-green)] rounded-t-lg px-6 py-4">
+            <h2 className="text-xl font-bold text-white">Coach Appointments</h2>
+          </div>
+          <div className="p-6 text-[var(--dark-green)]">
+            <p className="text-base font-medium">
               View and manage all your upcoming appointments with clients.
-            </Text>
-          </Box>
-        </Box>
+            </p>
+          </div>
+        </div>
 
-        <Box bg="white" boxShadow="md" borderRadius="lg" p={6}>
+        <div className="bg-white shadow-md rounded-lg p-6">
           {loading ? (
-            <Spinner size="lg" />
+            <Loader2 className="w-8 h-8 animate-spin" />
           ) : (
-            <TableContainer>
-              <Table variant="simple">
-                <Thead>
-                  <Tr>
-                    <Th>#</Th>
-                    <Th>Client Name</Th>
-                    <Th>Date</Th>
-                    <Th>Time</Th>
-                    <Th>Payment</Th>
-                    <Th>Completed</Th>
-                    <Th>Actions</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Client Name</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Completed</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {activeAppointments.map((appt, index) => (
-                    <Tr key={appt._id}>
-                      <Td>{index + 1}</Td>
-                      <Td>{appt.userData?.email}</Td>
-                      <Td>{appt.slotDate}</Td>
-                      <Td>{appt.slotTime}</Td>
-                      <Td>
-                        <Icon
-                          as={appt.payment ? CheckCircleIcon : CloseIcon}
-                          color={appt.payment ? "green.500" : "red.500"}
-                        />
-                      </Td>
-                      <Td>
-                        <Icon
-                          as={appt.isCompleted ? CheckCircleIcon : CloseIcon}
-                          color={appt.isCompleted ? "green.500" : "red.500"}
-                        />
-                      </Td>
-                      <Td>
+                    <TableRow key={appt._id}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{appt.userData?.email}</TableCell>
+                      <TableCell>{appt.slotDate}</TableCell>
+                      <TableCell>{appt.slotTime}</TableCell>
+                      <TableCell>
+                        {appt.payment
+                          ? <CheckCircle2 className="text-green-500 w-4 h-4" />
+                          : <X className="text-red-500 w-4 h-4" />}
+                      </TableCell>
+                      <TableCell>
+                        {appt.isCompleted
+                          ? <CheckCircle2 className="text-green-500 w-4 h-4" />
+                          : <X className="text-red-500 w-4 h-4" />}
+                      </TableCell>
+                      <TableCell>
                         {!appt.isCompleted && (
-                          <Flex gap={2}>
-                            <Button
-                              size="sm"
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              className="rounded-md border border-input bg-transparent px-2.5 py-1 text-sm hover:bg-muted"
                               onClick={() => {
                                 setSelectedAppointmentId(appt._id);
                                 onCompleteOpen();
                               }}
                             >
                               Complete Appointment
-                            </Button>
-                            <Button
-                              size="sm"
-                              leftIcon={<MdEdit />}
+                            </button>
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-1.5 rounded-md border border-input bg-transparent px-2.5 py-1 text-sm hover:bg-muted"
                               onClick={() => {
                                 setSelectedAppointmentId(appt._id);
                                 onCancelOpen();
                               }}
                             >
+                              <MdEdit />
                               Cancel Appointment
-                            </Button>
-                          </Flex>
+                            </button>
+                          </div>
                         )}
-                      </Td>
-                    </Tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </Tbody>
+                </TableBody>
               </Table>
-            </TableContainer>
+            </div>
           )}
-        </Box>
+        </div>
 
         {cancelledAppointments.length > 0 && (
-          <Box mt={6}>
-            <Button onClick={() => setShowCancelled(!showCancelled)}>
+          <div className="mt-6">
+            <button type="button" className="rounded-md border border-input bg-transparent px-3 py-2 hover:bg-muted" onClick={() => setShowCancelled(!showCancelled)}>
               {showCancelled ? "Hide Cancelled Appointments" : "Show Cancelled Appointments"}
-            </Button>
+            </button>
 
             {showCancelled && (
-              <Box mt={4} bg="white" boxShadow="md" borderRadius="lg" p={6}>
-                <TableContainer>
-                  <Table variant="simple">
-                    <Thead>
-                      <Tr>
-                        <Th>#</Th>
-                        <Th>Client Name</Th>
-                        <Th>Date</Th>
-                        <Th>Time</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
+              <div className="mt-4 bg-white shadow-md rounded-lg p-6">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Client Name</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Time</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {cancelledAppointments.map((appt, index) => (
-                        <Tr key={appt._id}>
-                          <Td>{index + 1}</Td>
-                          <Td>{appt.userData?.email}</Td>
-                          <Td>{appt.slotDate}</Td>
-                          <Td>{appt.slotTime}</Td>
-                        </Tr>
+                        <TableRow key={appt._id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{appt.userData?.email}</TableCell>
+                          <TableCell>{appt.slotDate}</TableCell>
+                          <TableCell>{appt.slotTime}</TableCell>
+                        </TableRow>
                       ))}
-                    </Tbody>
+                    </TableBody>
                   </Table>
-                </TableContainer>
-              </Box>
+                </div>
+              </div>
             )}
-          </Box>
+          </div>
         )}
 
-        <Modal isOpen={isCancelOpen} onClose={onCancelClose} isCentered>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Cancel Appointment</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
+        <Dialog open={isCancelOpen} onOpenChange={(open) => { if (!open) onCancelClose(); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cancel Appointment</DialogTitle>
+            </DialogHeader>
+            <div>
               Are you sure you want to cancel this appointment?
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="ghost" mr={3} onClick={onCancelClose}>
+            </div>
+            <DialogFooter className="sm:justify-end">
+              <button type="button" className="mr-3 rounded-md bg-transparent px-4 py-2 hover:bg-muted" onClick={onCancelClose}>
                 No
-              </Button>
-              <Button colorScheme="red" onClick={handleCancel}>
+              </button>
+              <button type="button" className="rounded-md bg-red-500 px-4 py-2 font-semibold text-white hover:bg-red-600" onClick={handleCancel}>
                 Yes
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-        <Modal isOpen={isCompleteOpen} onClose={onCompleteClose} isCentered>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Complete Appointment</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
+        <Dialog open={isCompleteOpen} onOpenChange={(open) => { if (!open) onCompleteClose(); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Complete Appointment</DialogTitle>
+            </DialogHeader>
+            <div>
               Are you sure you want to mark this appointment as completed?
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="ghost" mr={3} onClick={onCompleteClose}>
+            </div>
+            <DialogFooter className="sm:justify-end">
+              <button type="button" className="mr-3 rounded-md bg-transparent px-4 py-2 hover:bg-muted" onClick={onCompleteClose}>
                 No
-              </Button>
-              <Button colorScheme="green" onClick={handleComplete}>
+              </button>
+              <button type="button" className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700" onClick={handleComplete}>
                 Yes
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </Box>
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </CoachNav>
   );
 };

@@ -23,23 +23,20 @@ describe("Database Connection", () => {
     consoleSpy.mockRestore();
   });
 
-  it("should log an error and exit process on failure", async () => {
+  it("should log and rethrow the error on failure", async () => {
     const errorMessage = "Connection failed";
     mongoose.connect.mockRejectedValue(new Error(errorMessage));
 
     const consoleErrorSpy = jest
       .spyOn(console, "error")
       .mockImplementation(() => {});
-    const processExitSpy = jest
-      .spyOn(process, "exit")
-      .mockImplementation(() => {}); // Mock process.exit to prevent test exit
 
-    await connectDB();
+    // connectDB rethrows (it does NOT call process.exit — that would kill a
+    // serverless function on Vercel); the caller decides how to handle it.
+    await expect(connectDB()).rejects.toThrow(errorMessage);
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`Error: ${errorMessage}`);
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(`MongoDB connection error: ${errorMessage}`);
 
     consoleErrorSpy.mockRestore();
-    processExitSpy.mockRestore();
   });
 });

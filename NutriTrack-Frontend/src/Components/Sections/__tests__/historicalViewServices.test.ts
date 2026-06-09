@@ -1,6 +1,10 @@
 import axios from 'axios';
 import { getHistoricalData, fillMissingDates, convertTrackingDatesToEpoch, convertEpochToFormattedDate, formatTrackingDates } from '../../..//Services/historicalViewServices';
 
+// Stub env (uses import.meta, unsupported by ts-jest). Empty BACKEND_URL keeps
+// service URLs same-origin relative (e.g. "/api/history"), matching assertions below.
+jest.mock('../../../utils/env', () => ({ BACKEND_URL: '' }));
+
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 

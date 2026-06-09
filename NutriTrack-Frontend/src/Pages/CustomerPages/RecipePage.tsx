@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import {
-    Input, Select, Button, Box, Image, Text, SimpleGrid, Heading,
-    Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody,
-    ModalCloseButton, useDisclosure, List, ListItem, ListIcon
-} from '@chakra-ui/react';
 import { fetchMealsByName, fetchMealsByFilter, fetchRecipeDetails, fetchCategoriesByName,fetchArea } from '../../Services/recipeAPI';
 import { Sidenav } from '../../Components/Sections';
-import { debounce } from 'lodash'; 
+import { debounce } from 'lodash';
+import { Input } from '../../Components/ui/input';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '../../Components/ui/dialog';
+import { useDisclosure } from '../../hooks/use-disclosure';
 
 interface Meal {
     idMeal: string;
@@ -18,6 +21,8 @@ interface Meal {
     ingredients?: string[];
 
 }
+
+const selectClasses = "h-9 w-full rounded-md border border-input bg-transparent px-3 text-base md:text-sm";
 
 const RecipePage: React.FC = () => {
     const [query, setQuery] = useState<string>('');
@@ -31,7 +36,7 @@ const RecipePage: React.FC = () => {
     const [searchResults, setSearchResults] = useState<Meal[]>([]);
 
     useEffect(() => {
-        getCategories(); 
+        getCategories();
         getArea();
     }, []);
 
@@ -39,14 +44,9 @@ const RecipePage: React.FC = () => {
         console.log("Updated searchResults:", searchResults);
     }, [searchResults]);
 
-    // const searchMeals = async () => {
-    //     const meals = await fetchMealsByName(query);
-    //     setMeals(meals);
-    // };
-
     const searchMeals = async (searchQuery: string) => {
         const meals = await fetchMealsByName(searchQuery);
-        setSearchResults(meals); 
+        setSearchResults(meals);
     };
 
     const debouncedSearch = debounce((value: string) => searchMeals(value), 300);
@@ -55,26 +55,12 @@ const RecipePage: React.FC = () => {
         const value = e.target.value;
         setQuery(value);
         if (value) {
-            debouncedSearch(value); 
+            debouncedSearch(value);
         } else {
             debouncedSearch.cancel();
-            setSearchResults([]); 
+            setSearchResults([]);
         }
     };
-
-    // const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     const value = e.target.value;
-    //     setQuery(value);
-    
-    //     if (value.trim() === "") {
-    //         setSearchResults([]); // Immediately clear results when input is empty
-    //         return;
-    //     }
-    
-    //     debouncedSearch(value); 
-    //     console.log(searchResults);
-    // };
-    
 
     const filterMeals = async () => {
         const meals = await fetchMealsByFilter(filterType, filterValue);
@@ -83,7 +69,7 @@ const RecipePage: React.FC = () => {
 
     const getMealDetails = async (id: string) => {
         const meal = await fetchRecipeDetails(id);
-        const ingredients: string[] = []; 
+        const ingredients: string[] = [];
         for (let i = 1; i <= 20; i++) {
             const ingredient = meal[`strIngredient${i}`];
             const measure = meal[`strMeasure${i}`];
@@ -92,9 +78,9 @@ const RecipePage: React.FC = () => {
                 ingredients.push(`${measure} ${ingredient}`);
             }
         }
-       
+
         setSelectedMeal({ ...meal, ingredients });
-        onOpen(); 
+        onOpen();
     };
 
     const getCategories = async () => {
@@ -109,117 +95,114 @@ const RecipePage: React.FC = () => {
 
     return (
         <Sidenav>
-            <Box p={8}>
-            <Box bg="white" boxShadow="md" borderRadius="lg" p={0} mb={10}>
-                <Box bg="var(--dark-green)" borderTopRadius="lg" px={6} py={4}>
-                <Heading size="lg" color="white">Discover Recipes</Heading>
-                </Box>
-                <Box p={6}  borderBottomRadius="lg" color="var(--dark-green)">
-                <Text fontSize="md" fontWeight="medium">
+            <div className="p-8">
+            <div className="bg-white shadow-md rounded-lg p-0 mb-10">
+                <div className="bg-[var(--dark-green)] rounded-t-lg px-6 py-4">
+                <h2 className="text-xl font-bold text-white">Discover Recipes</h2>
+                </div>
+                <div className="p-6 rounded-b-lg text-[var(--dark-green)]">
+                <p className="text-base font-medium">
                     Search by name or filter by cuisine to explore delicious and healthy recipes. Tap on a recipe to view detailed ingredients and step-by-step instructions.
-                </Text>
-                </Box>
-            </Box>
+                </p>
+                </div>
+            </div>
 
-            <Box bg="white" boxShadow="md" borderRadius="lg" p={6}>
-                <Box display="flex" gap={3} mb={5}>
+            <div className="bg-white shadow-md rounded-lg p-6">
+                <div className="flex gap-3 mb-5">
                 <Input
                     placeholder="Search meal by name"
                     value={query}
                     onChange={handleSearchChange}
                 />
-                </Box>
+                </div>
 
                 {searchResults.length > 0 && (
-                <List spacing={1} bg="white" boxShadow="md" borderRadius="md" maxHeight="300px" overflowY="auto">
+                <ul className="bg-white shadow-md rounded-md max-h-[300px] overflow-y-auto">
                     {searchResults.map((meal) => (
-                    <ListItem
+                    <li
                         key={meal.idMeal}
-                        display="flex"
-                        alignItems="center"
-                        padding={2}
-                        cursor="pointer"
+                        className="flex items-center p-2 cursor-pointer hover:bg-gray-100"
                         onClick={() => getMealDetails(meal.idMeal)}
                     >
-                        <ListIcon as={Image} src={meal.strMealThumb} boxSize="40px" mr={2} />
-                        <Text>{meal.strMeal}</Text>
-                    </ListItem>
+                        <img src={meal.strMealThumb} alt={meal.strMeal} className="w-10 h-10 mr-2 rounded" />
+                        <p>{meal.strMeal}</p>
+                    </li>
                     ))}
-                </List>
+                </ul>
                 )}
 
-                <Box display="flex" gap={3} mb={5}>
-                <Select data-testid="filterType-select" onChange={(e) => setFilterType(e.target.value as 'category' | 'area')}>
+                <div className="flex gap-3 mb-5">
+                <select data-testid="filterType-select" className={selectClasses} onChange={(e) => setFilterType(e.target.value as 'category' | 'area')}>
                     <option value="category">Category</option>
                     <option value="area">Cuisine</option>
-                </Select>
+                </select>
                 {filterType === 'category' && (
-                    <Select data-testid="category-select" onChange={(e) => setFilterValue(e.target.value)} placeholder="Select Category">
+                    <select data-testid="category-select" className={selectClasses} onChange={(e) => setFilterValue(e.target.value)}>
+                    <option value="">Select Category</option>
                     {categories.map((category, index) => (
                         <option key={index} value={category}>{category}</option>
                     ))}
-                    </Select>
+                    </select>
                 )}
                 {filterType === 'area' && (
-                    <Select data-testid="area-select" onChange={(e) => setFilterValue(e.target.value)} placeholder="Select Cuisine">
+                    <select data-testid="area-select" className={selectClasses} onChange={(e) => setFilterValue(e.target.value)}>
+                    <option value="">Select Cuisine</option>
                     {areas.map((area, index) => (
                         <option key={index} value={area}>{area}</option>
                     ))}
-                    </Select>
+                    </select>
                 )}
-                <Button onClick={filterMeals} colorScheme="green">Filter</Button>
-                </Box>
+                <button type="button" onClick={filterMeals} className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700">Filter</button>
+                </div>
 
-                <SimpleGrid columns={[1, 2, 3]} spacing={5}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {meals.map(meal => (
-                    <Box key={meal.idMeal} onClick={() => getMealDetails(meal.idMeal)} cursor="pointer" p={3} borderWidth={1} borderRadius="lg">
-                    <Image src={meal.strMealThumb} alt={meal.strMeal} />
-                    <Text mt={2} fontWeight="bold">{meal.strMeal}</Text>
-                    </Box>
+                    <div key={meal.idMeal} onClick={() => getMealDetails(meal.idMeal)} className="cursor-pointer p-3 border rounded-lg">
+                    <img src={meal.strMealThumb} alt={meal.strMeal} />
+                    <p className="mt-2 font-bold">{meal.strMeal}</p>
+                    </div>
                 ))}
-                </SimpleGrid>
-            </Box>
-        </Box>
+                </div>
+            </div>
+        </div>
         {/* Modal for Meal Details */}
-            <Modal isOpen={isOpen} onClose={onClose} size="xl">
-                <ModalOverlay />
-                    <ModalContent>
-                        <ModalHeader>{selectedMeal?.strMeal}</ModalHeader>
-                            <ModalCloseButton />
-                                <ModalBody>
-                                    {selectedMeal && (
-                                        <Box>
-                                            <Image src={selectedMeal.strMealThumb} alt={selectedMeal.strMeal} borderRadius="md" mb={4} />
-                                            <Text><strong>Category:</strong> {selectedMeal.strCategory}</Text>
-                                            <Text><strong>Cuisine:</strong> {selectedMeal.strArea}</Text>
+            <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+                <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>{selectedMeal?.strMeal}</DialogTitle>
+                    </DialogHeader>
+                    {selectedMeal && (
+                        <div>
+                            <img src={selectedMeal.strMealThumb} alt={selectedMeal.strMeal} className="rounded-md mb-4" />
+                            <p><strong>Category:</strong> {selectedMeal.strCategory}</p>
+                            <p><strong>Cuisine:</strong> {selectedMeal.strArea}</p>
 
-                                            {/* Ingredients List */}
-                                            <Text mt={3} fontWeight="bold">Ingredients:</Text>
-                                                <ol style={{ paddingLeft: "20px" }}>
-                                                    {selectedMeal.ingredients?.map((item, index) => (
-                                                        <li key={index} style={{ marginBottom: "5px" }}>
-                                                            {`${index + 1}. ${item}`}
-                                                        </li>
-                                                    ))}
-                                                </ol>
+                            {/* Ingredients List */}
+                            <p className="mt-3 font-bold">Ingredients:</p>
+                                <ol style={{ paddingLeft: "20px" }}>
+                                    {selectedMeal.ingredients?.map((item, index) => (
+                                        <li key={index} style={{ marginBottom: "5px" }}>
+                                            {`${index + 1}. ${item}`}
+                                        </li>
+                                    ))}
+                                </ol>
 
 
-                                            <Text mt={3} fontWeight="bold">Instructions:</Text>
-                                            <ol style={{ paddingLeft: "20px" }}>
-                                                {selectedMeal.strInstructions
-                                                    ?.split(/\. (?=[A-Z])/g) 
-                                                    .map((step, index) => step.trim() && (
-                                                        <li key={index} style={{ marginBottom: "8px" }}>
-                                                            {`${index + 1}. ${step}.`}
-                                                        </li>
-                                                    ))
-                                                }
-                                            </ol>
-                                        </Box>
-                                    )}
-                                </ModalBody>
-                        </ModalContent>
-                </Modal>
+                            <p className="mt-3 font-bold">Instructions:</p>
+                            <ol style={{ paddingLeft: "20px" }}>
+                                {selectedMeal.strInstructions
+                                    ?.split(/\. (?=[A-Z])/g)
+                                    .map((step, index) => step.trim() && (
+                                        <li key={index} style={{ marginBottom: "8px" }}>
+                                            {`${index + 1}. ${step}.`}
+                                        </li>
+                                    ))
+                                }
+                            </ol>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </Sidenav>
     );
 };

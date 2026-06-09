@@ -1,9 +1,11 @@
 import React, { useState, useContext, FormEvent } from 'react';
-import axiosInstance from "../../utils/axiosInstance.ts"; 
+import axiosInstance from "../../utils/axiosInstance.ts";
 import { useNavigate, useLocation } from 'react-router-dom';
-import { VStack, Input, Button, Heading, Select, FormControl, FormLabel, FormErrorMessage, Text, Box, Container } from "@chakra-ui/react";
+import { Input } from "../../Components/ui/input";
 import { Sidenav } from "../../Components/Sections";
 import { UserContext } from "../../contexts/UserContext";
+
+const selectClasses = "h-9 w-full rounded-md border border-input bg-transparent px-3 text-base md:text-sm";
 
 const ProfileSetup: React.FC = () => {
   const location = useLocation();
@@ -70,76 +72,76 @@ const ProfileSetup: React.FC = () => {
 
   return (
     <Sidenav>
-        <Box bg="white" boxShadow="md" borderRadius="lg" p={0} mb={10}>
-          <Box bg="var(--dark-green)" borderTopRadius="lg" px={6} py={4}>
-            <Heading size="lg" color="white">Profile</Heading>
-          </Box>
-          <Box p={6} borderBottomRadius="lg" color="var(--dark-green)">
-            <Text fontSize="md" fontWeight="medium">
+        <div className="bg-white shadow-md rounded-lg p-0 mb-10">
+          <div className="bg-[var(--dark-green)] rounded-t-lg px-6 py-4">
+            <h2 className="text-xl font-bold text-white">Profile</h2>
+          </div>
+          <div className="p-6 rounded-b-lg text-[var(--dark-green)]">
+            <p className="text-base font-medium">
               Fill in your personal details to calculate your nutritional needs and personalize your dashboard.
-            </Text>
-          </Box>
-        </Box>
-      <Container maxW="container.sm" py={6}>
-        <Box bg="white" boxShadow="md" borderRadius="lg" p={6}>
+            </p>
+          </div>
+        </div>
+      <div className="mx-auto w-full max-w-xl py-6">
+        <div className="bg-white shadow-md rounded-lg p-6">
           <form onSubmit={handleSubmit}>
-            <VStack gap={4} align="stretch">
+            <div className="flex flex-col items-stretch gap-4">
               {Object.values(errors).map((err, index) => (
-                <Text key={index} color="red.500">{err}</Text>
+                <p key={index} className="text-red-500">{err}</p>
               ))}
 
-              <FormControl id="name" isRequired isInvalid={!!errors.name}>
-                <FormLabel>Name</FormLabel>
-                <Input type="text" value={name} onChange={(e) => setName(e.target.value)} />
-                <FormErrorMessage>{errors.name}</FormErrorMessage>
-              </FormControl>
+              <div>
+                <label htmlFor="name" className="block mb-1 font-medium">Name</label>
+                <Input id="name" type="text" required value={name} aria-invalid={!!errors.name || undefined} onChange={(e) => setName(e.target.value)} />
+                {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+              </div>
 
-              <FormControl id="age" isRequired isInvalid={!!errors.age}>
-                <FormLabel>Age (years)</FormLabel>
-                <Input type="number" value={age} onChange={(e) => setAge(Number(e.target.value))} />
-                <FormErrorMessage>{errors.age}</FormErrorMessage>
-              </FormControl>
+              <div>
+                <label htmlFor="age" className="block mb-1 font-medium">Age (years)</label>
+                <Input id="age" type="number" required value={age} aria-invalid={!!errors.age || undefined} onChange={(e) => setAge(Number(e.target.value))} />
+                {errors.age && <p className="text-sm text-destructive">{errors.age}</p>}
+              </div>
 
-              <FormControl id="gender" isRequired isInvalid={!!errors.gender}>
-                <FormLabel>Gender</FormLabel>
-                <Select value={gender} onChange={(e) => setGender(e.target.value)}>
+              <div>
+                <label htmlFor="gender" className="block mb-1 font-medium">Gender</label>
+                <select id="gender" required value={gender} className={selectClasses} onChange={(e) => setGender(e.target.value)}>
                   <option value=""></option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
                   <option value="other">Other</option>
-                </Select>
-                <FormErrorMessage>{errors.gender}</FormErrorMessage>
-              </FormControl>
+                </select>
+                {errors.gender && <p className="text-sm text-destructive">{errors.gender}</p>}
+              </div>
 
-              <FormControl id="activityLevel" isRequired isInvalid={!!errors.activityLevel}>
-                <FormLabel>Activity Level</FormLabel>
-                <Select value={activityLevel} onChange={(e) => setActivityLevel(e.target.value)}>
+              <div>
+                <label htmlFor="activityLevel" className="block mb-1 font-medium">Activity Level</label>
+                <select id="activityLevel" required value={activityLevel} className={selectClasses} onChange={(e) => setActivityLevel(e.target.value)}>
                   <option value=""></option>
                   <option value="light">Light</option>
                   <option value="moderate">Moderate</option>
                   <option value="active">Active</option>
                   <option value="very active">Very Active</option>
-                </Select>
-                <FormErrorMessage>{errors.activityLevel}</FormErrorMessage>
-              </FormControl>
+                </select>
+                {errors.activityLevel && <p className="text-sm text-destructive">{errors.activityLevel}</p>}
+              </div>
 
-              <FormControl id="height" isRequired isInvalid={!!errors.height}>
-                <FormLabel>Height (cm)</FormLabel>
-                <Input type="number" value={height} onChange={(e) => setHeight(Number(e.target.value))} />
-                <FormErrorMessage>{errors.height}</FormErrorMessage>
-              </FormControl>
+              <div>
+                <label htmlFor="height" className="block mb-1 font-medium">Height (cm)</label>
+                <Input id="height" type="number" required value={height} aria-invalid={!!errors.height || undefined} onChange={(e) => setHeight(Number(e.target.value))} />
+                {errors.height && <p className="text-sm text-destructive">{errors.height}</p>}
+              </div>
 
-              <FormControl id="weight" isRequired isInvalid={!!errors.weight}>
-                <FormLabel>Weight (kg)</FormLabel>
-                <Input type="number" value={weight} onChange={(e) => setWeight(Number(e.target.value))} />
-                <FormErrorMessage>{errors.weight}</FormErrorMessage>
-              </FormControl>
+              <div>
+                <label htmlFor="weight" className="block mb-1 font-medium">Weight (kg)</label>
+                <Input id="weight" type="number" required value={weight} aria-invalid={!!errors.weight || undefined} onChange={(e) => setWeight(Number(e.target.value))} />
+                {errors.weight && <p className="text-sm text-destructive">{errors.weight}</p>}
+              </div>
 
-              <Button type="submit" colorScheme="green" size="lg" mt={4}>Save</Button>
-            </VStack>
+              <button type="submit" className="mt-4 rounded-md bg-green-600 px-4 py-2 text-lg font-semibold text-white hover:bg-green-700">Save</button>
+            </div>
           </form>
-        </Box>
-      </Container>
+        </div>
+      </div>
     </Sidenav>
   );
 };

@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom';
+// Stub env (uses import.meta, unsupported by ts-jest) for the service imported transitively.
+jest.mock('../../../utils/env', () => ({ BACKEND_URL: '' }));
 import HistoricalLineGraph from '../../../Components/Sections/CustomerSections/HistoricalLineGraph';
 import { render, screen, fireEvent } from '@testing-library/react';
 

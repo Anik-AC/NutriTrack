@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SignUpDialog from '../Authentication/SignUpDialog'; // Adjust path as needed
 import axiosInstance from '../../../utils/axiosInstance';
-import axios, { AxiosError } from 'axios';
-import { useToast } from '@chakra-ui/react';
+import { AxiosError } from 'axios';
+import { notify } from '../../../utils/notify';
 import { useGoogleLogin } from '@react-oauth/google';
 import '@testing-library/jest-dom';
 
@@ -11,17 +11,9 @@ jest.mock('../../../utils/axiosInstance', () => ({
   post: jest.fn(),
 }));
 
-jest.mock('axios', () => ({
-  post: jest.fn(),
+jest.mock('../../../utils/notify', () => ({
+  notify: jest.fn(),
 }));
-
-jest.mock('@chakra-ui/react', () => {
-  const originalModule = jest.requireActual('@chakra-ui/react');
-  return {
-    ...originalModule,
-    useToast: jest.fn(),
-  };
-});
 
 jest.mock('@react-oauth/google', () => ({
   useGoogleLogin: jest.fn(),
@@ -37,11 +29,10 @@ jest.mock('zxcvbn', () => ({
 describe('SignUpDialog', () => {
   const mockOnClose = jest.fn();
   const mockOpenSignIn = jest.fn();
-  const mockToast = jest.fn();
+  const mockToast = notify as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useToast as jest.Mock).mockReturnValue(mockToast);
     (useGoogleLogin as jest.Mock).mockReturnValue(jest.fn());
   });
 
@@ -66,7 +57,7 @@ describe('SignUpDialog', () => {
   });
 
   test('handles successful email signup', async () => {
-    (axios.post as jest.Mock).mockResolvedValueOnce({
+    (axiosInstance.post as jest.Mock).mockResolvedValueOnce({
       data: { message: 'User registered' },
     });
 
@@ -86,7 +77,7 @@ describe('SignUpDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sign up with email' }));
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith('/api/auth/register', {
+      expect(axiosInstance.post).toHaveBeenCalledWith('/api/auth/register', {
         email: 'test@example.com',
         password: 'Password123!',
       });
@@ -103,7 +94,7 @@ describe('SignUpDialog', () => {
   });
 
   test('handles email signup error', async () => {
-    (axios.post as jest.Mock).mockRejectedValueOnce({
+    (axiosInstance.post as jest.Mock).mockRejectedValueOnce({
       response: { data: { message: 'Email already exists' } },
     } as AxiosError);
 

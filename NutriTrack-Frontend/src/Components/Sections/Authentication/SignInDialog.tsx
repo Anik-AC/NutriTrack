@@ -2,31 +2,22 @@
 
 import { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Button,
-  Input,
-  Stack,
-  Box,
-  Text,
-  Divider,
-  Link,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  useToast,
-  InputGroup, 
-  InputRightElement,
-} from "@chakra-ui/react";
+import { X } from "lucide-react";
 import {AxiosError} from "axios";
-import axiosInstance from "../../../utils/axiosInstance.ts"; 
-import { UserContext } from "../../../contexts/UserContext"; 
+import axiosInstance from "../../../utils/axiosInstance.ts";
+import { notify } from "../../../utils/notify.ts";
+import { UserContext } from "../../../contexts/UserContext";
 import { useGoogleLogin } from "@react-oauth/google";
-// import {ForgotPassword} from "../index.ts";
 import { logo, google } from "../../../assets/index.ts";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "../../ui/dialog";
+import { Input } from "../../ui/input";
+import { Separator } from "../../ui/separator";
 
 interface SignInDialogProps {
   open: boolean;
@@ -43,8 +34,7 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const [visibleField, setVisibleField] = useState<string | null>(null);
-  // const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
-  const toast = useToast();
+  const toast = notify;
   const { setLoggedUser } = useContext(UserContext) ?? {};
   const navigate = useNavigate();
   // Input Validation Logic
@@ -78,16 +68,13 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!validateInputs()) return;
-    
-    // console.log("setLoggedUser exists:", !!setLoggedUser);
 
     try {
-      // console.log("Making API call to /api/auth/login");
       const response = await axiosInstance.post('/api/auth/login', {
         email: emailRef.current?.value,
         password: passwordRef.current?.value,
       });
-  
+
       const { token, userType, profileCompleted, userProfile, expiresIn, verified} = response.data;
       console.log("Login successful!", userProfile.user);
 
@@ -104,7 +91,7 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
           userType,
           verified,
           tokenExpiry,  // Store expiry timestamp
-        });    
+        });
         localStorage.setItem("loggedUser", JSON.stringify({
           userid: userProfile.user,
           token,
@@ -155,9 +142,8 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
     } catch (err) {
       // Ensure 'err' is treated as an AxiosError
       const error = err as AxiosError<{ message: string }>;
-  
+
       console.error("Login Error:", error.response?.data?.message);
-      // alert(error.response?.data?.message || "Login failed.");
       toast({
         title: "Login failed",
         description: error.response?.data?.message || "Something went wrong. Please try again.",
@@ -169,8 +155,6 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
     }
   };
   const handleGoogleLoginSuccess = async (credentialResponse: any) => {
-    //console.log("Google Login Credential Response:", credentialResponse); // ✅ Debugging
-
     const accessToken = credentialResponse.access_token;
 
     if (!accessToken) {
@@ -185,12 +169,12 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
       });
       return; // ✅ Stops further execution
     }
-  
+
     try {
       const response = await axiosInstance.post("/api/auth/google/signin", {
         access_token: accessToken,
       });
-  
+
       const { token, userType, profileCompleted, userProfile, expiresIn,verified} = response.data;
       console.log("Login with Google successful!", userProfile.user);
 
@@ -207,7 +191,7 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
           userType,
           verified,
           tokenExpiry,  // Store expiry timestamp
-        });    
+        });
         localStorage.setItem("loggedUser", JSON.stringify({
           userid: userProfile.user,
           token,
@@ -224,7 +208,7 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
       } else {
         console.error("UserContext is not available.");
       }
-  
+
       toast({
         title: "Login Successful!",
         description: "You have signed in using Google.",
@@ -232,7 +216,7 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
         duration: 4000,
         isClosable: true,
       });
-  
+
       // Redirect logic after login
       if (userType === "admin") {
         navigate("/admin-dashboard", { replace: true });
@@ -268,7 +252,7 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
       setEmailErrorMessage("");
       setPasswordError(false);
       setPasswordErrorMessage("");
-  
+
       // Clear input fields
       if (emailRef.current) emailRef.current.value = "";
       if (passwordRef.current) passwordRef.current.value = "";
@@ -278,64 +262,48 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
   if (!open) return null; // Prevents unnecessary renders
 
   return (
-    <Modal isOpen={open} onClose={onClose} closeOnOverlayClick={false} isCentered> 
-      <ModalOverlay />
-      <ModalContent borderRadius="16px">
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <DialogContent
+        showCloseButton={false}
+        onInteractOutside={(e) => e.preventDefault()}
+        className="p-0 overflow-hidden rounded-2xl sm:max-w-md font-[Rubik,sans-serif]"
+      >
+        <DialogTitle className="sr-only">Sign in to your account</DialogTitle>
+        <DialogDescription className="sr-only">Sign in to NutriTrack</DialogDescription>
+
         {/* Header with Logo and Dark Green Background */}
-        <ModalHeader 
-          bg="var(--dark-green)" 
-          display="flex" 
-          justifyContent="center" 
-          alignItems="center" 
-          py={4} 
-          position="relative"
-          borderTopLeftRadius="12px" 
-          borderTopRightRadius="12px"
-          borderBottomLeftRadius="0"
-          borderBottomRightRadius="0"          
-        >
-          <a 
-            href="/" 
+        <div className="relative flex justify-center items-center bg-[var(--dark-green)] py-4 rounded-t-2xl">
+          <a
+            href="/"
             style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
             aria-label="Go to NutriTrack homepage"
           >
             <img src={logo} alt="NutriTrack" width={124} height={32} />
           </a>
-        </ModalHeader>
-        <ModalCloseButton 
-          color="white" 
-          right={4}
-          transform="translateY(25%)"
-          aria-label="Close modal"
-          tabIndex={0}
-          borderRadius="6px"
-          _hover={{
-            bg: 'rgba(255, 255, 255, 0.1)',
-          }}
-          _focus={{
-            outline: "2px solid var(--bright-green)",
-            outlineOffset: "2px",
-          }}
-        />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close modal"
+            tabIndex={0}
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-md p-1 text-white hover:bg-white/10 focus:[outline:2px_solid_var(--bright-green)] focus:outline-offset-2"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
         {/* Sign In Form */}
-        <ModalBody pb={6} pt={6} fontFamily="Rubik, sans-serif">
+        <div className="px-6 pb-6 pt-6">
           <form onSubmit={handleSubmit} id="signInForm" data-testid="signInForm">
-            <Stack spacing={4}>
+            <div className="flex flex-col gap-4">
               {/* Email Input */}
-              <Box>
-                <Text fontSize="15px" fontWeight={600} mb={1}>Email</Text>
-                <Input 
-                  ref={emailRef} 
-                  placeholder="your@email.com" 
-                  isInvalid={emailError} 
-                  errorBorderColor="red.300"
+              <div>
+                <p className="text-[15px] font-semibold mb-1">Email</p>
+                <Input
+                  ref={emailRef}
+                  placeholder="your@email.com"
+                  aria-invalid={emailError || undefined}
                   aria-label="Email address"
                   aria-describedby={emailError ? "email-error" : undefined}
-                  _focus={{
-                    outline: "2px solid var(--bright-green)",
-                    outlineOffset: "2px",
-                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault(); // Prevents accidental activation of Forgot Password
@@ -344,26 +312,22 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
                   }}
                 />
                 {emailError && (
-                  <Text id="email-error" fontSize="xs" color="red.500" role="alert">{emailErrorMessage}</Text>
+                  <p id="email-error" className="text-xs text-red-500" role="alert">{emailErrorMessage}</p>
                 )}
-              </Box>
+              </div>
 
               {/* Password Input */}
-              <Box>
-                <Text fontSize="15px" fontWeight={600} mb={1}>Password</Text>
-                <InputGroup>
-                  <Input 
-                    ref={passwordRef} 
-                    type={visibleField === "password" ? "text" : "password"} 
+              <div>
+                <p className="text-[15px] font-semibold mb-1">Password</p>
+                <div className="relative">
+                  <Input
+                    ref={passwordRef}
+                    type={visibleField === "password" ? "text" : "password"}
                     placeholder="Enter your password"
-                    isInvalid={passwordError} 
-                    errorBorderColor="red.300"
+                    aria-invalid={passwordError || undefined}
                     aria-label="Password"
                     aria-describedby={passwordError ? "password-error" : undefined}
-                    _focus={{
-                      outline: "2px solid var(--bright-green)",
-                      outlineOffset: "2px",
-                    }}
+                    className="pr-12"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault(); // Prevents accidental activation of Forgot Password
@@ -371,123 +335,77 @@ const SignInDialog = ({ open, onClose, openSignUp, openForgotPassword}: SignInDi
                       }
                     }}
                   />
-                    <InputRightElement width="3rem">
-                      <Button
-                          h="1.5rem"
-                          size="sm"
-                          bg="white" // ✅ Default white background
-                          _hover={{ bg: "green.300" }} // ✅ Changes to green on hover
-                          _focus={{ boxShadow: "none" }}
-                          onClick={() => setVisibleField(visibleField === "password" ? null : "password")}
-                          variant="ghost"
-                      >
-                          {visibleField === "password" ? <FaEyeSlash /> : <FaEye />}  {/* ✅ Toggle eye icon */}
-                      </Button>
-                  </InputRightElement>
-                </InputGroup>
+                  <button
+                    type="button"
+                    onClick={() => setVisibleField(visibleField === "password" ? null : "password")}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex h-6 items-center justify-center rounded-md bg-white px-2 text-gray-700 hover:bg-green-300 focus:outline-none"
+                  >
+                    {visibleField === "password" ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
                 {passwordError && (
-                  <Text id="password-error" fontSize="xs" color="red.500" role="alert">{passwordErrorMessage}</Text>
+                  <p id="password-error" className="text-xs text-red-500" role="alert">{passwordErrorMessage}</p>
                 )}
-              </Box>
+              </div>
 
               {/* Forgot Password Link */}
-              <Link 
-                as="button" 
-                fontSize="15px"
-                fontWeight={600}
-                color="blue.500" 
+              <button
+                type="button"
                 onClick={() => {
                   onClose();
                   openForgotPassword();
                 }}
                 tabIndex={0}
                 aria-label="Forgot your password"
-                _focus={{
-                  outline: "2px solid var(--bright-green)",
-                  outlineOffset: "2px",
-                }}
-                _hover={{
-                  textDecoration: "underline",
-                  boxShadow: "none",
-                  bg: "transparent"
-                }}
+                className="self-start bg-transparent p-0 text-[15px] font-semibold text-blue-500 hover:underline focus:[outline:2px_solid_var(--bright-green)] focus:outline-offset-2"
               >
                 Forgot your password?
-              </Link>
-              
+              </button>
+
 
               {/* Sign In Button */}
-              <Button 
+              <button
                 id="signInButton"
-                type="submit" 
-                colorScheme="blue" 
-                width="full"
-                fontSize="15px"
-                fontWeight={600}
+                type="submit"
                 aria-label="Sign in with email"
-                _focus={{
-                  outline: "2px solid var(--bright-green)",
-                  outlineOffset: "2px",
-                }}
+                className="w-full rounded-md bg-blue-500 px-4 py-2 text-[15px] font-semibold text-white hover:bg-blue-600 focus:[outline:2px_solid_var(--bright-green)] focus:outline-offset-2"
               >
                 Sign in
-              </Button>
+              </button>
 
-              <Divider aria-hidden="true" />
-              <Text textAlign="center" fontSize="15px" fontWeight={600} color="gray.600">or</Text>
+              <Separator aria-hidden="true" />
+              <p className="text-center text-[15px] font-semibold text-gray-600">or</p>
 
               {/* Sign In with Google */}
-              <Button 
+              <button
+                type="button"
                 onClick={() => googleSignin()}
-                variant="outline" 
-                width="full"
-                fontSize="15px"
-                fontWeight={500}
-                leftIcon={<Box as="img" src={google} alt="Google logo" boxSize="16px" />}
                 aria-label="Sign in with Google"
-                outline="1px solid rgba(156, 156, 156, 0.53)"
-                _focus={{
-                  outline: "2px solid var(--bright-green)",
-                  outlineOffset: "2px",
-                }}
-                _hover={{
-                  bg: 'rgba(0, 0, 0, 0.05)',
-                }}
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-[rgba(156,156,156,0.53)] bg-white px-4 py-2 text-[15px] font-medium text-gray-800 hover:bg-black/5 focus:[outline:2px_solid_var(--bright-green)] focus:outline-offset-2"
               >
+                <img src={google} alt="" className="w-4 h-4" />
                 Sign in with Google
-              </Button>
+              </button>
               {/* Sign Up Link */}
-              <Text textAlign="center" fontSize="15px" fontWeight={400}>
+              <p className="text-center text-[15px] font-normal">
                 Don't have an account?{" "}
-                <Button 
-                  variant="link" 
-                  colorScheme="blue" 
+                <button
+                  type="button"
                   onClick={() => {
                     onClose();    // Close SignIn Dialog
                     openSignUp(); // Open SignUp Dialog
                   }}
-                  fontSize="15px"
-                  fontWeight={600}
                   aria-label="Sign up for a new account"
-                  _focus={{
-                    outline: "2px solid var(--bright-green)",
-                    outlineOffset: "2px",
-                  }}
-                  _hover={{
-                    textDecoration: "underline",
-                    boxShadow: "none",
-                    bg: "transparent"
-                  }}
+                  className="bg-transparent p-0 text-[15px] font-semibold text-blue-500 hover:underline focus:[outline:2px_solid_var(--bright-green)] focus:outline-offset-2"
                 >
                   Sign up
-                </Button>
-              </Text>
-            </Stack>
+                </button>
+              </p>
+            </div>
           </form>
-          {/* <ForgotPassword open={forgotPasswordOpen} handleClose={() => setForgotPasswordOpen(false)} /> */}
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

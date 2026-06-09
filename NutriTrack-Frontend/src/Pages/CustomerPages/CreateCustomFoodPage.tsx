@@ -1,33 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Sidenav } from "../../Components/Sections";
+import { ChevronDown, Plus, Pencil, Trash2 } from "lucide-react";
+import { Input } from "../../Components/ui/input";
 import {
-  Box,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-  VStack,
-  List,
-  ListItem,
-  Heading,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  Tooltip,
-  HStack,
-  Text,
-} from "@chakra-ui/react";
-import { ChevronDownIcon, AddIcon, EditIcon, DeleteIcon } from "@chakra-ui/icons"; // Improved icons
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../Components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../Components/ui/dropdown-menu";
+import { useDisclosure } from "../../hooks/use-disclosure";
+
+const fieldLabel = (key: string) =>
+  key === "foodName"
+    ? "Food name"
+    : key === "serving_unit"
+    ? "Serving unit"
+    : key === "serving_weight_grams"
+    ? "Serving Weight Grams"
+    : key.replace(/([A-Z])/g, " $1").replace(/^./, str => str.toUpperCase());
 
 const CreateCustomFoodPage: React.FC = () => {
   const navigate = useNavigate();
@@ -46,7 +44,7 @@ const CreateCustomFoodPage: React.FC = () => {
     serving_weight_grams: ""
   });
   const [editFoodItem, setEditFoodItem] = useState<any | null>(null);
- 
+
   useEffect(() => {
     fetch("api/getCustomFood", {
       method: "GET",
@@ -231,205 +229,143 @@ const CreateCustomFoodPage: React.FC = () => {
     navigate(`/trackCustomFood`, { state: { food: food } });
   };
 
+  const renderFields = () => (
+    <div className="flex flex-col gap-4">
+      {Object.keys(formData).map((key) => (
+        <div key={key}>
+          <label htmlFor={key} className="block mb-1 font-medium capitalize">
+            {fieldLabel(key)}
+            {["foodName", "serving_unit", "calories", "serving_weight_grams"].includes(key) && <span aria-hidden="true" className="text-red-500"> *</span>}
+          </label>
+          <Input
+            id={key}
+            type={["calories", "protein", "carbohydrates", "fat", "fiber", "serving_weight_grams"].includes(key) ? "number" : "text"}
+            name={key}
+            required={["foodName", "serving_unit", "calories", "serving_weight_grams"].includes(key)}
+            value={formData[key as keyof typeof formData]}
+            onChange={handleChange}
+          />
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <Sidenav>
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={0} mb={10}>
-        <Box bg="var(--dark-green)" borderTopRadius="lg" px={6} py={4}>
-          <Heading size="lg" color="white">Create and Track Custom Meals</Heading>
-        </Box>
-        <Box p={6} borderBottomRadius="lg" color="var(--dark-green)">
-          <Text fontSize="md" fontWeight="medium">
+      <div className="bg-white shadow-md rounded-lg p-0 mb-10">
+        <div className="bg-[var(--dark-green)] rounded-t-lg px-6 py-4">
+          <h2 className="text-xl font-bold text-white">Create and Track Custom Meals</h2>
+        </div>
+        <div className="p-6 rounded-b-lg text-[var(--dark-green)]">
+          <p className="text-base font-medium">
             Build your own custom food items and log them as part of your daily meal tracking. Perfect for homemade or unique recipes!
-          </Text>
-        </Box>
-      </Box>
-      <Box bg="white" boxShadow="md" borderRadius="lg" textAlign="center" p={6}>
-      <HStack justifyContent="space-between" alignItems="center" mb={6}>
-          <Heading
-            as="h1"
-            size="lg"
-            color="var(--dark-green)"
-            fontWeight="bold"
-            letterSpacing="tight"
-          >
+          </p>
+        </div>
+      </div>
+      <div className="bg-white shadow-md rounded-lg text-center p-6">
+      <div className="flex justify-between items-center mb-6">
+          <h1 className="text-xl font-bold tracking-tight text-[var(--dark-green)]">
             Create Your Own Meal
-          </Heading>
-          <Button
-            leftIcon={<AddIcon />}
-            colorScheme="green"
-            variant="solid"
-            size="md"
-            boxShadow="sm"
-            _hover={{ boxShadow: "md", bg: "green.600" }}
-            transition="all 0.2s"
+          </h1>
+          <button
+            type="button"
             onClick={handleCreateOpen}
+            className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 font-semibold text-white shadow-sm hover:bg-green-700 hover:shadow-md transition-all"
           >
+            <Plus className="w-4 h-4" />
             Create a Meal
-          </Button>
-        </HStack>
+          </button>
+        </div>
 
         {/* Create Food Modal */}
-        <Modal isOpen={isCreateOpen} onClose={onCreateClose} size="lg">
-          <ModalOverlay />
-          <ModalContent borderRadius="lg" boxShadow="xl">
-            <ModalHeader bg="green.500" p={4}>
-            <Heading as="h2" size="md" textAlign="center" color="white">
-                Add Food Item
-              </Heading>
-            </ModalHeader>
-            <ModalBody p={6}>
+        <Dialog open={isCreateOpen} onOpenChange={(open) => { if (!open) onCreateClose(); }}>
+          <DialogContent showCloseButton={false} className="p-0 overflow-hidden rounded-lg sm:max-w-lg">
+            <DialogHeader className="bg-green-500 p-4">
+              <DialogTitle className="text-center text-lg text-white">Add Food Item</DialogTitle>
+            </DialogHeader>
+            <div className="p-6">
               <form onSubmit={handleSubmit}>
-                <VStack spacing={4}>
-                  {Object.keys(formData).map((key) => (
-                    <FormControl key={key} isRequired={["foodName", "serving_unit", "calories", "serving_weight_grams"].includes(key)}>
-                      <FormLabel htmlFor={key} textTransform="capitalize">
-                        {key === "foodName"
-                          ? "Food name"
-                          : key === "serving_unit"
-                          ? "Serving unit"
-                          : key === "serving_weight_grams"
-                          ? "Serving Weight Grams"
-                          : key.replace(/([A-Z])/g, " $1").replace(/^./, str => str.toUpperCase())}
-                      </FormLabel>
-                      <Input
-                        id={key}
-                        type={["calories", "protein", "carbohydrates", "fat", "fiber", "serving_weight_grams"].includes(key) ? "number" : "text"}
-                        name={key}
-                        value={formData[key as keyof typeof formData]}
-                        onChange={handleChange}
-                        borderColor="gray.300"
-                        _focus={{ borderColor: "green.500", boxShadow: "0 0 0 1px var(--dark-green)" }}
-                      />
-                    </FormControl>
-                  ))}
-                </VStack>
+                {renderFields()}
               </form>
-            </ModalBody>
-            <ModalFooter>
-            <Button
-                colorScheme="green"
-                type="submit"
-                onClick={handleSubmit}
-              >                Add Food Item
-              </Button>
-              <Button onClick={onCreateClose} ml={3} colorScheme="red">
+            </div>
+            <DialogFooter className="px-6 pb-6 sm:justify-start">
+              <button type="submit" onClick={handleSubmit} className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700">
+                Add Food Item
+              </button>
+              <button type="button" onClick={onCreateClose} className="ml-3 rounded-md bg-red-500 px-4 py-2 font-semibold text-white hover:bg-red-600">
                 Cancel
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Edit Food Modal */}
-        <Modal isOpen={isEditOpen} onClose={onEditClose}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader bg="green.500" p={4}>
-              <Heading as="h2" size="md" textAlign="center" color="white">Edit Food Item</Heading>
-            </ModalHeader>
-            <ModalBody mt={4} p={6}>
+        <Dialog open={isEditOpen} onOpenChange={(open) => { if (!open) onEditClose(); }}>
+          <DialogContent showCloseButton={false} className="p-0 overflow-hidden rounded-lg">
+            <DialogHeader className="bg-green-500 p-4">
+              <DialogTitle className="text-center text-lg text-white">Edit Food Item</DialogTitle>
+            </DialogHeader>
+            <div className="p-6 mt-4">
               <form onSubmit={handleEditSubmit}>
-                <VStack spacing={4}>
-                  {Object.keys(formData).map((key) => (
-                    <FormControl key={key} isRequired={["foodName", "serving_unit", "calories", "serving_weight_grams"].includes(key)}>
-                      <FormLabel htmlFor={key} textTransform="capitalize">
-                        {key === "foodName"
-                          ? "Food name"
-                          : key === "serving_unit"
-                          ? "Serving unit"
-                          : key === "serving_weight_grams"
-                          ? "Serving Weight Grams"
-                          : key.replace(/([A-Z])/g, " $1").replace(/^./, str => str.toUpperCase())}
-                      </FormLabel>
-                      <Input
-                        id={key}
-                        type={["calories", "protein", "carbohydrates", "fat", "fiber", "serving_weight_grams"].includes(key) ? "number" : "text"}
-                        name={key}
-                        value={formData[key as keyof typeof formData]}
-                        onChange={handleChange}
-                      />
-                    </FormControl>
-                  ))}
-                </VStack>
+                {renderFields()}
               </form>
-            </ModalBody>
-            <ModalFooter>
-              <Button colorScheme="green" type="submit" onClick={handleEditSubmit}>
+            </div>
+            <DialogFooter className="px-6 pb-6 sm:justify-start">
+              <button type="submit" onClick={handleEditSubmit} className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700">
                 Save Changes
-              </Button>
-              <Button onClick={onEditClose} ml={3} colorScheme="red">
+              </button>
+              <button type="button" onClick={onEditClose} className="ml-3 rounded-md bg-red-500 px-4 py-2 font-semibold text-white hover:bg-red-600">
                 Cancel
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Display Added Food Items */}
-        <List spacing={3} mt={20}>
+        <ul className="flex flex-col gap-3 mt-20">
           {allFoodItems.length === 0 ? (
-            <Box>No food items added yet.</Box>
+            <div>No food items added yet.</div>
           ) : (
             allFoodItems.map((food, index) => (
-              <ListItem
+              <li
                 key={index}
-                p={3}
-                borderWidth={1}
-                borderRadius="md"
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                _hover={{ bg: "gray.100" }}
+                className="flex justify-between items-center p-3 border rounded-md hover:bg-gray-100"
                 data-testid={`food-item-${food.foodName}`}
               >
-                <Box flex="1">
+                <div className="flex-1 text-left">
                   <strong>{food.foodName}</strong> - {food.details.calories} cal per {food.serving_unit}
-                </Box>
-                <Menu>
-                  <Tooltip label="More actions" placement="top">
-                    <MenuButton
-                      as={IconButton}
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
                       aria-label="More actions"
-                      icon={<ChevronDownIcon />}
-                      size="sm"
-                      color="var(--dark-green)" // Match app theme
-                      variant="outline"
-                      borderRadius="full" // Circular button
-                      _hover={{ bg: "green.50", color: "green.700" }} // Subtle hover effect
-                      transition="all 0.2s"
-                    />
-                  </Tooltip>
-                  <MenuList
-                    borderColor="green.200"
-                    boxShadow="md"
-                    minWidth="150px" // Slightly wider for readability
-                  >
-                    <MenuItem
-                      icon={<AddIcon />}
-                      onClick={() => handleTrackClick(food)}
-                      _hover={{ bg: "green.50", color: "var(--dark-green)" }}
+                      title="More actions"
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-input bg-transparent text-[var(--dark-green)] hover:bg-green-50 hover:text-green-700 transition-all"
                     >
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="min-w-[150px]">
+                    <DropdownMenuItem onClick={() => handleTrackClick(food)}>
+                      <Plus className="w-4 h-4 mr-2" />
                       Track
-                    </MenuItem>
-                    <MenuItem
-                      icon={<EditIcon />}
-                      onClick={() => handleEditClick(food)}
-                      _hover={{ bg: "green.50", color: "var(--dark-green)" }}
-                    >
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleEditClick(food)}>
+                      <Pencil className="w-4 h-4 mr-2" />
                       Edit
-                    </MenuItem>
-                    <MenuItem
-                      icon={<DeleteIcon />}
-                      onClick={() => handleDelete(food)}
-                      _hover={{ bg: "red.50", color: "red.600" }} // Red hover for delete
-                    >
+                    </DropdownMenuItem>
+                    <DropdownMenuItem variant="destructive" onClick={() => handleDelete(food)}>
+                      <Trash2 className="w-4 h-4 mr-2" />
                       Delete
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
-              </ListItem>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </li>
             ))
           )}
-        </List>
-      </Box>
+        </ul>
+      </div>
     </Sidenav>
   );
 };

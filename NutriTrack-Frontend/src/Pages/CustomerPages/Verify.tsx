@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axiosInstance from "@/utils/axiosInstance";
-import { useToast } from "@chakra-ui/react";
+import { notify } from "@/utils/notify";
 
 const Verify = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const toast = useToast();
+  const toast = notify;
 
   useEffect(() => {
     const verifyPayment = async () => {

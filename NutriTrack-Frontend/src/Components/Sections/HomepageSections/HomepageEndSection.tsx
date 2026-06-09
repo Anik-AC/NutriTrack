@@ -1,30 +1,13 @@
-import { Box, Text } from "@chakra-ui/react";
-
 const HomepageEndSection = () => {
   return (
-    <Box
-      bg="#193e2e"
-      py={28} 
-      textAlign="center"
-      fontFamily="Deacon, sans-serif"
-    >
-      <Text
-        fontWeight={800}
-        fontSize={{ base: "clamp(4rem, 10vw, 8rem)" }}
-        lineHeight="80%"
-        color="white"
-      >
+    <div className="bg-[#193e2e] py-28 text-center font-[Deacon,sans-serif]">
+      <p className="font-extrabold text-[clamp(4rem,10vw,8rem)] leading-[80%] text-white">
         EAT SMART.
-      </Text>
-      <Text
-        fontWeight={800}
-        fontSize={{ base: "clamp(4rem, 10vw, 8rem)" }}
-        lineHeight="80%"
-        color="yellow.400"
-      >
+      </p>
+      <p className="font-extrabold text-[clamp(4rem,10vw,8rem)] leading-[80%] text-yellow-400">
         TRANSFORM YOUR LIFE.
-      </Text>
-    </Box>
+      </p>
+    </div>
   );
 };
 

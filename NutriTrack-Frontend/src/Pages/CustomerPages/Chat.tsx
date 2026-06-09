@@ -1,26 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { useContext } from 'react';
 import { UserContext } from '../../contexts/UserContext';
-import {
-  Avatar,
-  Box,
-  Button,
-  Heading,
-  HStack,
-  Input,
-  Text,
-  VStack,
-  useToast,
-  Container,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Td,
-} from '@chakra-ui/react';
 import { Sidenav } from '../../Components/Sections';
 import axiosInstance from '../../utils/axiosInstance';
+import { notify } from '../../utils/notify';
 import ReactMarkdown from 'react-markdown';
+import { Avatar, AvatarFallback, AvatarImage } from '../../Components/ui/avatar';
+import { Input } from '../../Components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from '../../Components/ui/table';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -45,6 +38,14 @@ interface MealEntry {
   };
 }
 
+const getInitials = (name: string) =>
+  name
+    .split(' ')
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
 const Chat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [mealsSummary, setMealsSummary] = useState<string>('');
@@ -52,7 +53,7 @@ const Chat: React.FC = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [showYesPrompt, setShowYesPrompt] = useState(false);
-  const toast = useToast();
+  const toast = notify;
   const bottomRef = useRef<HTMLDivElement>(null);
   const userName = JSON.parse(localStorage.getItem('userInfo') || '{}')?.name || 'there';
 
@@ -105,21 +106,21 @@ const Chat: React.FC = () => {
 
       // Render table for UI
       const table = (
-        <Table variant="simple" size="sm" width="fit-content">
-          <Thead>
-            <Tr>
-              <Td fontWeight="bold">Meal</Td>
-              <Td fontWeight="bold">Items</Td>
-            </Tr>
-          </Thead>
-          <Tbody>
+        <Table className="w-fit">
+          <TableHeader>
+            <TableRow>
+              <TableCell className="font-bold">Meal</TableCell>
+              <TableCell className="font-bold">Items</TableCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {Object.entries(groupedMeals).map(([meal, items]) => (
-              <Tr key={meal}>
-                <Td textTransform="capitalize">{meal}</Td>
-                <Td>{items.join(', ')}</Td>
-              </Tr>
+              <TableRow key={meal}>
+                <TableCell className="capitalize">{meal}</TableCell>
+                <TableCell>{items.join(', ')}</TableCell>
+              </TableRow>
             ))}
-          </Tbody>
+          </TableBody>
         </Table>
       );
       setMealTable(table);
@@ -216,61 +217,46 @@ const Chat: React.FC = () => {
 
   const getAvatar = (role: 'user' | 'assistant') =>
     role === 'user' ? (
-      <Avatar
-        name={loggedUser?.name || "User"}
-        bg="var(--bright-green)"
-        size="sm"
-      />
+      <Avatar className="size-8">
+        <AvatarFallback className="bg-[var(--bright-green)] text-[var(--dark-green)] text-xs font-semibold">
+          {getInitials(loggedUser?.name || "User")}
+        </AvatarFallback>
+      </Avatar>
     ) : (
-      <Avatar
-        name="NutriBot"
-        size="sm"
-        src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png"
-      />
+      <Avatar className="size-8">
+        <AvatarImage src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="NutriBot" />
+        <AvatarFallback className="text-xs font-semibold">NB</AvatarFallback>
+      </Avatar>
     );
-  
+
 
   return (
     <Sidenav>
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={0} mb={10}>
-        <Box
-          bg="var(--dark-green)"
-          borderTopRadius="lg"
-          px={6}
-          py={4}
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Heading size="lg" color="white">
+      <div className="bg-white shadow-md rounded-lg p-0 mb-10">
+        <div className="bg-[var(--dark-green)] rounded-t-lg px-6 py-4 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-white">
             Chat with NutriBot
-          </Heading>
-        </Box>
-        <Box p={6} borderBottomRadius="lg" color="var(--dark-green)">
-          <Text fontSize="md" fontWeight="medium">
+          </h2>
+        </div>
+        <div className="p-6 rounded-b-lg text-[var(--dark-green)]">
+          <p className="text-base font-medium">
             Ask NutriBot for personalized meal suggestions based on what you've eaten recently.
-          </Text>
-        </Box>
-      </Box>
+          </p>
+        </div>
+      </div>
 
-      <Container maxW="container.sm" py={6}>
-        <Box bg="white" boxShadow="md" borderRadius="lg" p={6} minH="60vh">
-          <VStack spacing={4} align="stretch">
-            <Box overflowY="auto" maxH="50vh" pr={2}>
+      <div className="mx-auto w-full max-w-xl py-6">
+        <div className="bg-white shadow-md rounded-lg p-6 min-h-[60vh]">
+          <div className="flex flex-col items-stretch gap-4">
+            <div className="overflow-y-auto max-h-[50vh] pr-2">
               {messages.map((msg, idx) => (
-                <HStack
+                <div
                   key={idx}
-                  alignSelf={msg.role === 'user' ? 'flex-end' : 'flex-start'}
-                  spacing={3}
-                  mb={3}
+                  className={`flex items-start gap-3 mb-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {msg.role === 'assistant' && getAvatar(msg.role)}
-                  <Box
-                    bg={msg.role === 'user' ? 'blue.100' : 'gray.100'}
-                    px={4}
-                    py={2}
-                    borderRadius="md"
-                    maxW="80%"
+                  <div
+                    className={`px-4 py-2 rounded-md max-w-[80%] ${msg.role === 'user' ? 'bg-blue-100' : 'bg-gray-100'}`}
                   >
                     {msg.role === 'assistant' ? (
                       <>
@@ -278,63 +264,62 @@ const Chat: React.FC = () => {
                         {idx === 0 && mealTable}
                       </>
                     ) : (
-                      <Text fontSize="sm">{msg.content}</Text>
+                      <p className="text-sm">{msg.content}</p>
                     )}
-                    <Text fontSize="xs" color="gray.500" mt={1} textAlign="right">
+                    <p className="text-xs text-gray-500 mt-1 text-right">
                       {msg.timestamp}
-                    </Text>
-                  </Box>
+                    </p>
+                  </div>
                   {msg.role === 'user' && getAvatar(msg.role)}
-                </HStack>
+                </div>
               ))}
               {loading && (
-                <HStack justify="start" mb={2}>
+                <div className="flex justify-start items-center gap-3 mb-2">
                   {getAvatar('assistant')}
-                  <Text fontSize="sm" color="gray.500">
+                  <p className="text-sm text-gray-500">
                     NutriBot is thinking...
-                  </Text>
-                </HStack>
+                  </p>
+                </div>
               )}
               <div ref={bottomRef} />
-            </Box>
+            </div>
 
             {showYesPrompt && !loading && (
-              <Box textAlign="center">
-                <Button
-                  size="sm"
-                  colorScheme="green"
-                  variant="solid"
+              <div className="text-center">
+                <button
+                  type="button"
+                  className="rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-green-700"
                   onClick={() => sendMessage('Yes')}
                 >
                   Yes, suggest meals
-                </Button>
-              </Box>
+                </button>
+              </div>
             )}
 
-            <HStack mt={4}>
+            <div className="flex items-center gap-2 mt-4">
               <Input
                 placeholder="Ask a question or type yes..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                flex={1}
-                isDisabled={loading}
+                className="flex-1"
+                disabled={loading}
               />
-              <Button size="sm" colorScheme="red" variant="outline" onClick={clearChat}>
+              <button type="button" className="rounded-md border border-red-500 px-3 py-1.5 text-sm font-semibold text-red-500 hover:bg-red-50" onClick={clearChat}>
                 Clear Chat
-              </Button>
-              <Button
-                colorScheme="green"
+              </button>
+              <button
+                type="button"
+                className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700 disabled:opacity-70"
                 onClick={() => sendMessage()}
-                isLoading={loading}
-                loadingText="Sending"
+                disabled={loading}
               >
-                Send
-              </Button>
-            </HStack>
-          </VStack>
-        </Box>
-      </Container>
+                {loading ? 'Sending' : 'Send'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </Sidenav>
   );
 };

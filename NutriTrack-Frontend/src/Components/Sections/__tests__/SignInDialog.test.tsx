@@ -1,10 +1,10 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SignInDialog from '../Authentication/SignInDialog';
 import axiosInstance from '../../../utils/axiosInstance';
-import { useToast } from '@chakra-ui/react';
+import { notify } from '../../../utils/notify';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
-import { UserContext } from "../../../contexts/UserContext"; 
+import { UserContext } from "../../../contexts/UserContext";
 import '@testing-library/jest-dom';
 
 // Mock dependencies
@@ -12,13 +12,9 @@ jest.mock('../../../utils/axiosInstance', () => ({
   post: jest.fn(),
 }));
 
-jest.mock('@chakra-ui/react', () => {
-  const originalModule = jest.requireActual('@chakra-ui/react');
-  return {
-    ...originalModule,
-    useToast: jest.fn(),
-  };
-});
+jest.mock('../../../utils/notify', () => ({
+  notify: jest.fn(),
+}));
 
 jest.mock('react-router-dom', () => ({
   useNavigate: jest.fn(),
@@ -40,13 +36,12 @@ describe('SignInDialog', () => {
   const mockOnClose = jest.fn();
   const mockOpenSignUp = jest.fn();
   const mockOpenForgotPassword = jest.fn();
-  const mockToast = jest.fn();
+  const mockToast = notify as jest.Mock;
   const mockNavigate = jest.fn();
   const mockGoogleLogin = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useToast as jest.Mock).mockReturnValue(mockToast);
     (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
     (useGoogleLogin as jest.Mock).mockReturnValue(mockGoogleLogin);
   });

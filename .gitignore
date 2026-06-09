@@ -65,3 +65,5 @@ graphify-out/
 .env*.local
 
 .graphify*
+
+Planning/

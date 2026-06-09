@@ -2,26 +2,29 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import BmiCalculatorBox from '../HomepageSections/BmiCalculatorBox'; 
 import '@testing-library/jest-dom';
 
-// Mock Chakra UI components
-jest.mock('@chakra-ui/react', () => {
-  const originalModule = jest.requireActual('@chakra-ui/react');
-  return {
-    ...originalModule,
-    Slider: ({ value, onChange, min, max }: { value: number; onChange: (value: number) => void; min: number; max: number }) => (
-      <input
-        type="range"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        min={min}
-        max={max}
-        data-testid="slider"
-      />
-    ),
-    SliderTrack: () => <div data-testid="slider-track" />,
-    SliderFilledTrack: () => <div data-testid="slider-filled" />,
-    SliderThumb: () => <div data-testid="slider-thumb" />,
-  };
-});
+// Mock the shadcn/ui Slider with a native range input so we can drive value changes
+jest.mock('../../ui/slider', () => ({
+  Slider: ({
+    value,
+    onValueChange,
+    min,
+    max,
+  }: {
+    value: number[];
+    onValueChange: (value: number[]) => void;
+    min: number;
+    max: number;
+  }) => (
+    <input
+      type="range"
+      value={value[0]}
+      onChange={(e) => onValueChange([Number(e.target.value)])}
+      min={min}
+      max={max}
+      data-testid="slider"
+    />
+  ),
+}));
 
 describe('BmiCalculatorBox', () => {
   test('renders with initial values', () => {

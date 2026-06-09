@@ -1,19 +1,8 @@
-
-import {
-  Box,
-  //Container,
-  SimpleGrid,
-  Stack,
-  Text,
-  //useColorModeValue,
-  Button,
-  Divider,
-  Link,
-} from '@chakra-ui/react'
 import { FaLinkedin, FaInstagram } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { sm_logo } from "../../assets/index.ts";
 import {footerLinks } from "../../Constants";
+import { Separator } from "../ui/separator";
 
 const Logo = () => {
   return (
@@ -23,172 +12,76 @@ const Logo = () => {
   );
 };
 
+const socialButtonClasses =
+  "inline-flex items-center justify-center text-[14px] font-[Rubik,sans-serif] font-normal bg-[var(--dark-green)] text-[var(--soft-white)] border-2 border-[var(--soft-white)] px-[16px] py-[9px] rounded-[50px] hover:bg-[rgba(25,50,25,0.8)] focus:[outline:2px_solid_var(--bright-green)] focus:outline-offset-2";
 
 export default function Footer() {
-  const linkColor = "var(--soft-white)";
-  const linkHoverColor = 'white';
-
   return (
-    <Box
-      bg={'--dark-green'}
-      color={'gray.200'}
-      width={'100vw'}
-      >
-      {/* <Container as={Stack} maxW={'6xl'} py={10}> */}
-      <Stack maxW="100%" py={10} px={8}>
-        <SimpleGrid
-          templateColumns={{ sm: '1fr 1fr', md: '1fr 1fr', xl: '2fr 2fr 1fr 1fr' }}
-          spacing={8}>
-          <Stack flex="1" spacing={6} direction="row" >
-            <Box>
+    <div className="bg-[var(--dark-green)] text-gray-200 w-screen">
+      <div className="flex flex-col max-w-full py-10 px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[2fr_2fr_1fr_1fr] gap-8">
+          <div className="flex flex-row gap-6 flex-1">
+            <div>
               <Logo />
-            </Box>
-            <Box pt={6}>
-            <Text fontSize="24px" fontWeight="400" color="#F3EDE4" fontFamily="Rubik, sans-serif">
-              Get in touch
-            </Text>
-            <Link 
-              href="mailto:hello@mailgun.onixpace.com" 
-              fontSize="24px" 
-              fontWeight="400" 
-              color="#F3EDE4" 
-              fontFamily="Graphik, sans-serif"
-              textDecoration="underline" 
-              _hover={{ textDecoration: "none" }} 
-            >
-              hello@mailgun.onixpace.com
-            </Link>
-           </Box>
-          </Stack>
-          <Stack flex="1" display={{ base: 'none', xl: 'flex' }}/>
-          <Stack flex="1" spacing={2} color="var(--off-white)">
-            <Text fontSize="sm" fontWeight="bold">
-              2025 NutriTrack Ltd
-            </Text>
-            <Text fontSize="sm">ECE 651 - Project </Text>
-            <Text fontSize="sm">
-              Street No. 1, XYZ Building, 101 University Avenue, Waterloo, N2J XXX
-            </Text>
-          </Stack>
-          <Stack align={'flex-start'} justify={'flex-end'}>
-            {footerLinks.map((nav) =>{
-            return (
-              <a key={nav.id} href={`/${nav.id}`} style={{ textDecoration: 'none' }}> 
-                  <Box 
-                    fontFamily={'Rubik, sans-serif'} 
-                    color={linkColor}
-                    _hover={{
-                      textDecoration: 'none',
-                      color: linkHoverColor,
-                    }}
-                    fontSize="md"
-                    justifyContent="center"  
-                    alignItems="center"
-                    textAlign="center"  
-                    width="100%" 
-                  >
-                    {nav.title}
-                </Box>
-              </a>
-            );
-          })}
-             
-            <Stack
-              flex="1"
-              justify={'flex-end'}
-              direction={'row'}
-              spacing={6}>
-              
-              {/* LinkedIn Button */}
-              <Button
-                as={'a'}
-                href="#"
-                fontSize={'14px'}
-                fontFamily={'Rubik, sans-serif'}
-                fontWeight={400}
-                bg={'var(--dark-green)'} // Background color
-                color={'var(--soft-white)'} // Text color
-                border={'2px solid var(--soft-white)'} // Border color
-                px={'16px'}
-                py={'9px'}
-                borderRadius={'50px'} // Oval shape
-                tabIndex={0} // Enables keyboard focusability
-                role="link" // Explicitly sets the role as a link
-                aria-label="LinkedIn" // Screen reader label
-                _hover={{
-                  bg: 'rgba(25, 50, 25, 0.8)', // Slightly darker version of --dark-green
-                }}
-                _focus={{
-                  outline: "2px solid var(--bright-green)", // Focus visibility
-                  outlineOffset: "2px",
-                }}
+            </div>
+            <div className="pt-6">
+              <p className="text-[24px] font-normal text-[#F3EDE4] font-[Rubik,sans-serif]">
+                Get in touch
+              </p>
+              <a
+                href="mailto:hello@mailgun.onixpace.com"
+                className="text-[24px] font-normal text-[#F3EDE4] font-[Graphik,sans-serif] underline hover:no-underline"
               >
-                <FaLinkedin size={20} /> {/* LinkedIn Icon */}
-              </Button>
+                hello@mailgun.onixpace.com
+              </a>
+            </div>
+          </div>
+          <div className="flex-1 hidden xl:flex" />
+          <div className="flex flex-col gap-2 flex-1 text-[var(--off-white)]">
+            <p className="text-sm font-bold">
+              2025 NutriTrack Ltd
+            </p>
+            <p className="text-sm">ECE 651 - Project </p>
+            <p className="text-sm">
+              Street No. 1, XYZ Building, 101 University Avenue, Waterloo, N2J XXX
+            </p>
+          </div>
+          <div className="flex flex-col items-start justify-end">
+            {footerLinks.map((nav) => {
+              return (
+                <a key={nav.id} href={`/${nav.id}`} style={{ textDecoration: 'none' }}>
+                  <div className="font-[Rubik,sans-serif] text-[var(--soft-white)] hover:text-white text-base text-center w-full">
+                    {nav.title}
+                  </div>
+                </a>
+              );
+            })}
+
+            <div className="flex flex-row justify-end gap-6 flex-1">
+              {/* LinkedIn Button */}
+              <a href="#" tabIndex={0} role="link" aria-label="LinkedIn" className={socialButtonClasses}>
+                <FaLinkedin size={20} />
+              </a>
 
               {/* Instagram Button */}
-              <Button
-                as={'a'}
-                href="#"
-                fontSize={'14px'}
-                fontFamily={'Rubik, sans-serif'}
-                fontWeight={400}
-                bg={'var(--dark-green)'} // Background color
-                color={'var(--soft-white)'} // Text color
-                border={'2px solid var(--soft-white)'} // Border color
-                px={'16px'}
-                py={'9px'}
-                borderRadius={'50px'} // Oval shape
-                tabIndex={0} // Enables keyboard focusability
-                role="link" // Explicitly sets the role as a link
-                aria-label="Instagram" // Screen reader label
-                _hover={{
-                  bg: 'rgba(25, 50, 25, 0.8)', // Slightly darker version of --dark-green
-                }}
-                _focus={{
-                  outline: "2px solid var(--bright-green)", // Focus visibility
-                  outlineOffset: "2px",
-                }}
-              >
-                <FaInstagram size={20} /> {/* Instagram Icon */}
-              </Button>
-              {/* X (Twitter) Button */}
-              <Button
-                  as={'a'}
-                  href="#"
-                  fontSize={'14px'}
-                  fontFamily={'Rubik, sans-serif'}
-                  fontWeight={400}
-                  bg={'var(--dark-green)'} // Background color
-                  color={'var(--soft-white)'} // Text color
-                  border={'2px solid var(--soft-white)'} // Border color
-                  px={'16px'}
-                  py={'9px'}
-                  borderRadius={'50px'} // Oval shape
-                  tabIndex={0} // Enables keyboard focusability
-                  role="link" // Explicitly sets the role as a link
-                  aria-label="X (Twitter)" // Screen reader label
-                  _hover={{
-                    bg: 'rgba(25, 50, 25, 0.8)', // Slightly darker version of --dark-green
-                  }}
-                  _focus={{
-                    outline: "2px solid var(--bright-green)", // Focus visibility
-                    outlineOffset: "2px",
-                  }}
-                >
-                  <FaXTwitter size={20} /> {/* X (Twitter) Icon */}
-                </Button>
-            </Stack>
-          </Stack>
+              <a href="#" tabIndex={0} role="link" aria-label="Instagram" className={socialButtonClasses}>
+                <FaInstagram size={20} />
+              </a>
 
-        </SimpleGrid>
-      </Stack>
-      {/* </Container> */}
-      <Divider borderColor="rgb(87, 94, 89)" />
-      <Text fontSize="sm"  mt={2} px={8} color={'var(--footer-color)'} pt={8} pb={5}>
-        <Text fontSize={'sm'}>© 2025 NutriTrack Ltd. All rights reserved</Text>
-        <Text as="span" fontWeight="bold">NutriTrack Limited</Text> is a project developed for ECE 651 by Group 3 during the Winter 2025 term.
-      </Text>
-    </Box>
+              {/* X (Twitter) Button */}
+              <a href="#" tabIndex={0} role="link" aria-label="X (Twitter)" className={socialButtonClasses}>
+                <FaXTwitter size={20} />
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <Separator className="bg-[rgb(87,94,89)]" />
+      <div className="text-sm mt-2 px-8 text-[var(--footer-color)] pt-8 pb-5">
+        <p className="text-sm">© 2025 NutriTrack Ltd. All rights reserved</p>
+        <span className="font-bold">NutriTrack Limited</span> is a project developed for ECE 651 by Group 3 during the Winter 2025 term.
+      </div>
+    </div>
   )
 }

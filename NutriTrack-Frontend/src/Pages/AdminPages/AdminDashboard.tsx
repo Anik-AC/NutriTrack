@@ -1,12 +1,13 @@
-import { Box, Heading, Text, Input, Button, useToast, VStack } from "@chakra-ui/react";
 import { Sidebar } from "../../Components/Sections";
 import { useContext, useState, useEffect } from "react";
 import axiosInstance from "../../utils/axiosInstance";
+import { notify } from "../../utils/notify";
 import { UserContext } from "../../contexts/UserContext";
+import { Input } from "../../Components/ui/input";
 
 const AdminDashboard = () => {
   const { loggedUser } = useContext(UserContext) ?? {};
-  const toast = useToast();
+  const toast = notify;
   const [userId, setUserId] = useState("");
   const [coachId, setCoachId] = useState("");
   const [emailQuery, setEmailQuery] = useState("");
@@ -120,80 +121,80 @@ const AdminDashboard = () => {
 
   return (
     <Sidebar>
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={0} mb={10}>
-        <Box bg="var(--dark-green)" borderTopRadius="lg" px={6} py={4}>
-          <Heading size="lg" color="white">Admin Dashboard</Heading>
-        </Box>
-        <Box p={6} borderBottomRadius="lg" color="var(--dark-green)">
-          <Text fontSize="md" fontWeight="medium">
+      <div className="bg-white shadow-md rounded-lg p-0 mb-10">
+        <div className="bg-[var(--dark-green)] rounded-t-lg px-6 py-4">
+          <h2 className="text-xl font-bold text-white">Admin Dashboard</h2>
+        </div>
+        <div className="p-6 rounded-b-lg text-[var(--dark-green)]">
+          <p className="text-base font-medium">
             Manage platform statistics and promote users to coach or admin roles.
-          </Text>
-        </Box>
-      </Box>
+          </p>
+        </div>
+      </div>
 
       {/* Overview Box */}
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={6} mb={8}>
-        <Heading size="md" color="var(--dark-green)" mb={4}>Overview</Heading>
+      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h3 className="text-lg font-bold text-[var(--dark-green)] mb-4">Overview</h3>
         {dashData ? (
-          <VStack spacing={4} align="stretch">
-            <Text><b>Coaches:</b> {dashData.coaches}</Text>
-            <Text><b>Patients:</b> {dashData.patients}</Text>
-            <Text><b>Total Appointments:</b> {dashData.appointments}</Text>
-          </VStack>
+          <div className="flex flex-col items-stretch gap-4">
+            <p><b>Coaches:</b> {dashData.coaches}</p>
+            <p><b>Patients:</b> {dashData.patients}</p>
+            <p><b>Total Appointments:</b> {dashData.appointments}</p>
+          </div>
         ) : (
-          <Text>Loading dashboard data...</Text>
+          <p>Loading dashboard data...</p>
         )}
-      </Box>
+      </div>
 
       {/* Get User ID from Email Box */}
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={6} mb={8}>
-        <Heading size="md" color="var(--dark-green)" mb={4}>Find User ID by Email</Heading>
-        <Text fontSize="md" fontWeight="medium" mb={4}>
+      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h3 className="text-lg font-bold text-[var(--dark-green)] mb-4">Find User ID by Email</h3>
+        <p className="text-base font-medium mb-4">
           Enter the email address of a user to retrieve their user ID for admin or coach promotion.
-        </Text>
+        </p>
         <Input
           placeholder="Enter Email Address"
           value={emailQuery}
           onChange={(e) => setEmailQuery(e.target.value)}
-          mb={4}
+          className="mb-4"
         />
-        <Button colorScheme="purple" onClick={fetchUserIdFromEmail} mb={2}>Get User ID</Button>
+        <button type="button" className="rounded-md bg-purple-600 px-4 py-2 font-semibold text-white hover:bg-purple-700 mb-2" onClick={fetchUserIdFromEmail}>Get User ID</button>
         {fetchedUserId && (
-          <Text fontWeight="medium" mt={2} color="var(--dark-green)">
+          <p className="font-medium mt-2 text-[var(--dark-green)]">
             User ID: <strong>{fetchedUserId}</strong>
-          </Text>
+          </p>
         )}
-      </Box>
+      </div>
 
       {/* Promote to Admin Box */}
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={6} mb={8}>
-        <Heading size="md" color="var(--dark-green)" mb={4}>Promote to Admin</Heading>
-        <Text fontSize="md" fontWeight="medium" mb={4}>
+      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h3 className="text-lg font-bold text-[var(--dark-green)] mb-4">Promote to Admin</h3>
+        <p className="text-base font-medium mb-4">
           Enter a user ID below to grant them administrative privileges.
-        </Text>
+        </p>
         <Input
           placeholder="Enter User ID"
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
-          mb={4}
+          className="mb-4"
         />
-        <Button colorScheme="green" onClick={promoteToAdmin}>Promote to Admin</Button>
-      </Box>
+        <button type="button" className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700" onClick={promoteToAdmin}>Promote to Admin</button>
+      </div>
 
       {/* Promote to Coach Box */}
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={6} mb={8}>
-        <Heading size="md" color="var(--dark-green)" mb={4}>Promote to Coach</Heading>
-        <Text fontSize="md" fontWeight="medium" mb={4}>
+      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h3 className="text-lg font-bold text-[var(--dark-green)] mb-4">Promote to Coach</h3>
+        <p className="text-base font-medium mb-4">
           Enter a user ID to promote them to a coach. They'll appear to users for appointments after completing their profile.
-        </Text>
+        </p>
         <Input
           placeholder="Enter User ID"
           value={coachId}
           onChange={(e) => setCoachId(e.target.value)}
-          mb={4}
+          className="mb-4"
         />
-        <Button colorScheme="blue" onClick={promoteToCoach}>Promote to Coach</Button>
-      </Box>
+        <button type="button" className="rounded-md bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-600" onClick={promoteToCoach}>Promote to Coach</button>
+      </div>
 
     </Sidebar>
   );

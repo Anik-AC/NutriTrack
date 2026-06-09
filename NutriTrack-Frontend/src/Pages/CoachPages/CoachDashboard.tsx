@@ -1,21 +1,14 @@
 import { useContext, useEffect, useState } from "react";
-import {
-  Box,
-  Heading,
-  Text,
-  Button,
-  Flex,
-  useToast,
-  Switch,
-} from "@chakra-ui/react";
 import { CoachNav } from "../../Components/Sections";
 import { UserContext } from "../../contexts/UserContext";
 import axiosInstance from "../../utils/axiosInstance";
+import { notify } from "../../utils/notify";
 import { useNavigate } from "react-router-dom";
+import { Switch } from "../../Components/ui/switch";
 
 const CoachDashboard = () => {
   const { logout, loggedUser } = useContext(UserContext) ?? {};
-  const toast = useToast();
+  const toast = notify;
   const navigate = useNavigate();
   const [dashData, setDashData] = useState<any>(null);
   const [available, setAvailable] = useState(false);
@@ -39,7 +32,7 @@ const CoachDashboard = () => {
   };
 
   useEffect(() => {
-    fetchDashboard(); 
+    fetchDashboard();
   }, [loggedUser?.token]);
 
   const handleToggleAvailability = async () => {
@@ -53,7 +46,7 @@ const CoachDashboard = () => {
           },
         }
       );
-      
+
       toast({
         title: `Coach is now ${res.data.available ? "Available" : "Not Available"}`,
         status: "success",
@@ -74,76 +67,71 @@ const CoachDashboard = () => {
 
   return (
     <CoachNav>
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={0} mb={10}>
-        <Box bg="var(--dark-green)" borderTopRadius="lg" px={6} py={4}>
-          <Heading size="lg" color="white">Coach Dashboard</Heading>
-        </Box>
-        <Box p={6} borderBottomRadius="lg" color="var(--dark-green)">
-          <Text fontSize="md" fontWeight="medium">
+      <div className="bg-white shadow-md rounded-lg p-0 mb-10">
+        <div className="bg-[var(--dark-green)] rounded-t-lg px-6 py-4">
+          <h2 className="text-xl font-bold text-white">Coach Dashboard</h2>
+        </div>
+        <div className="p-6 rounded-b-lg text-[var(--dark-green)]">
+          <p className="text-base font-medium">
             Manage your coaching profile, monitor earnings, track appointments, and control your availability — all in one place.
-          </Text>
-        </Box>
-      </Box>
+          </p>
+        </div>
+      </div>
 
       {/* Dashboard Summary */}
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={6} mb={8}>
-        <Flex justify="space-between" align="flex-start" mb={4}>
-          <Heading size="md" color="var(--dark-green)">Overview</Heading>
-          <Button colorScheme="green" onClick={() => navigate("/coach-appointments")}>Check Appointments</Button>
-        </Flex>
+      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-lg font-bold text-[var(--dark-green)]">Overview</h3>
+          <button type="button" className="rounded-md bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700" onClick={() => navigate("/coach-appointments")}>Check Appointments</button>
+        </div>
         {dashData ? (
-          <Flex direction={{ base: "column", md: "row" }} gap={6}>
-            <Box flex={1} p={4} borderRadius="md" bg="gray.50" boxShadow="sm">
-              <Text fontWeight="bold" color="var(--dark-green)">Earnings</Text>
-              <Text fontSize="2xl">${dashData.earnings}</Text>
-            </Box>
-            <Box flex={1} p={4} borderRadius="md" bg="gray.50" boxShadow="sm">
-              <Text fontWeight="bold" color="var(--dark-green)">Total Patients</Text>
-              <Text fontSize="2xl">{dashData.patients}</Text>
-              
-            </Box>
-            <Box flex={1} p={4} borderRadius="md" bg="gray.50" boxShadow="sm">
-              
-              <Text fontWeight="bold" color="var(--dark-green)">Appointments</Text>
-              <Text fontSize="2xl">{dashData.appointments}</Text>
-            </Box>
-          </Flex>
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1 p-4 rounded-md bg-gray-50 shadow-sm">
+              <p className="font-bold text-[var(--dark-green)]">Earnings</p>
+              <p className="text-2xl">${dashData.earnings}</p>
+            </div>
+            <div className="flex-1 p-4 rounded-md bg-gray-50 shadow-sm">
+              <p className="font-bold text-[var(--dark-green)]">Total Patients</p>
+              <p className="text-2xl">{dashData.patients}</p>
+
+            </div>
+            <div className="flex-1 p-4 rounded-md bg-gray-50 shadow-sm">
+
+              <p className="font-bold text-[var(--dark-green)]">Appointments</p>
+              <p className="text-2xl">{dashData.appointments}</p>
+            </div>
+          </div>
         ) : (
-          <Text>Loading dashboard data...</Text>
+          <p>Loading dashboard data...</p>
         )}
-      </Box>
+      </div>
 
       {/* Availability Toggle */}
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={6} mb={8}>
-        <Heading size="md" mb={4} color="var(--dark-green)">Availability</Heading>
+      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h3 className="text-lg font-bold mb-4 text-[var(--dark-green)]">Availability</h3>
 
-          <Text fontSize="md" fontWeight="medium" pb={8}>
+          <p className="text-base font-medium pb-8">
             Toggle your availability status. When unavailable, you will not appear to users looking to book appointments.
-          </Text>
+          </p>
 
 
-        <Flex align="center" gap={6}>
-          <Text
-            fontWeight="bold"
-            color={available ? "green.600" : "red.600"}
-            fontSize="lg"
-          >
+        <div className="flex items-center gap-6">
+          <p className={`font-bold text-lg ${available ? "text-green-600" : "text-red-600"}`}>
             {available ? "Available" : "Not Available"}
-          </Text>
+          </p>
           <Switch
-            size="lg"
-            colorScheme="green"
-            isChecked={available}
-            onChange={handleToggleAvailability}
+            checked={available}
+            onCheckedChange={handleToggleAvailability}
+            className="data-[state=checked]:bg-green-600"
           />
-        </Flex>
-      </Box>
+        </div>
+      </div>
 
-      <Box bg="white" boxShadow="md" borderRadius="lg" p={6}>
-        <Button colorScheme="red" onClick={logout} size="lg">
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <button type="button" className="rounded-md bg-red-500 px-4 py-2 text-lg font-semibold text-white hover:bg-red-600" onClick={logout}>
           Logout
-        </Button>
-      </Box>
+        </button>
+      </div>
     </CoachNav>
   );
 };
