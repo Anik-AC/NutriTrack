@@ -7,4 +7,5 @@ import adminRoutes from "./adminRoute.js";
 import coachRoutes from "./coachRoute.js";
 import recipeRoutes from "./recipeRoutes.js";
 import mealPlanRoutes from "./mealPlanRoutes.js";
-export { authRoutes, nutriRoutes, nutritionRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes, recipeRoutes, mealPlanRoutes };
+import waterRoutes from "./waterRoutes.js";
+export { authRoutes, nutriRoutes, nutritionRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes, recipeRoutes, mealPlanRoutes, waterRoutes };

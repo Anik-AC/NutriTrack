@@ -359,6 +359,61 @@ if ($planId) {
 if ($planRecipeId) { Req DELETE "/api/v1/recipes/$planRecipeId" | Out-Null }
 
 # -----------------------------------------------------------------------
+Section "WATER INTAKE v1 (Phase 3)"
+
+$r = Req PUT "/api/v1/water/goal" @{ dailyGoalMl = 2500 }
+Check "PUT /api/v1/water/goal (set goal)" $r 200 { $args[0].data.dailyGoalMl -eq 2500 }
+
+$r = Req PUT "/api/v1/water/goal" @{ dailyGoalMl = 499 }
+Check "PUT /api/v1/water/goal (too low -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+$r = Req POST "/api/v1/water/log" @{ amount = 250; source = "quick_add" }
+Check "POST /api/v1/water/log (250ml)" $r 201 { $args[0].data.log.amount -eq 250 -and $args[0].data.today.total -ge 250 }
+$logId1 = if ($r.ok -and $r.data.data.log._id) { $r.data.data.log._id } else { $null }
+
+$r = Req POST "/api/v1/water/log" @{ amount = 500 }
+Check "POST /api/v1/water/log (500ml)" $r 201 { $args[0].data.today.total -ge 500 }
+
+$r = Req POST "/api/v1/water/log" @{ amount = 0 }
+Check "POST /api/v1/water/log (amount=0 -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+$r = Req POST "/api/v1/water/log" @{ amount = 99999 }
+Check "POST /api/v1/water/log (too large -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+$r = Req GET "/api/v1/water/today"
+Check "GET /api/v1/water/today" $r 200 { $args[0].data.total -ge 750 -and $args[0].data.goal -eq 2500 }
+if ($r.ok) {
+    Write-Host "         + total=$($r.data.data.total)ml / goal=$($r.data.data.goal)ml ($($r.data.data.percentage)%)" -ForegroundColor DarkGreen
+}
+
+$today = (Get-Date -Format "yyyy-MM-dd")
+$sevenDaysAgo = (Get-Date).AddDays(-6).ToString("yyyy-MM-dd")
+$r = Req GET "/api/v1/water/history?startDate=$sevenDaysAgo&endDate=$today"
+Check "GET /api/v1/water/history (date range)" $r 200 { $null -ne $args[0].data.days }
+if ($r.ok) {
+    Write-Host "         + $($r.data.data.days.Count) day(s) with data" -ForegroundColor DarkGreen
+}
+
+$r = Req GET "/api/v1/water/history"
+Check "GET /api/v1/water/history (default 7 days)" $r 200 { $null -ne $args[0].data.days }
+
+$r = Req GET "/api/v1/water/history?startDate=not-a-date"
+Check "GET /api/v1/water/history (bad date -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+$r = Req GET "/api/v1/water/history?startDate=2026-06-10&endDate=2026-06-01"
+Check "GET /api/v1/water/history (start > end -> 400)" $r 400 { $args[0].error.code -eq "INVALID_RANGE" }
+
+if ($logId1) {
+    $r = Req DELETE "/api/v1/water/log/$logId1"
+    Check "DELETE /api/v1/water/log/:id" $r 200 { $args[0].data.id -ne $null }
+} else {
+    Skip "DELETE /api/v1/water/log/:id" "no log ID"
+}
+
+$r = Req DELETE "/api/v1/water/log/000000000000000000000000"
+Check "DELETE /api/v1/water/log/:id (not found -> 404)" $r 404 { $args[0].error.code -eq "WATER_LOG_NOT_FOUND" }
+
+# -----------------------------------------------------------------------
 Section "SWAGGER DOCS"
 $r = Req GET "/api/docs.json" -auth $false
 Check "GET /api/docs.json" $r 200

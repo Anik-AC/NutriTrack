@@ -8,4 +8,6 @@ import VerificationOtp from "./VerificationOtp.js";
 import nutritionCacheModel from "./nutritionCacheModel.js";
 import recipeModel from "./recipeModel.js";
 import mealPlanModel from "./mealPlanModel.js";
-export { customFoodModel, User, userProfile, trackingModel, foodModel, PasswordResetToken, VerificationOtp, nutritionCacheModel, recipeModel, mealPlanModel };
+import waterLogModel from "./waterLogModel.js";
+import waterGoalModel from "./waterGoalModel.js";
+export { customFoodModel, User, userProfile, trackingModel, foodModel, PasswordResetToken, VerificationOtp, nutritionCacheModel, recipeModel, mealPlanModel, waterLogModel, waterGoalModel };
