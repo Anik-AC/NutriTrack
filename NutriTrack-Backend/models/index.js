@@ -11,4 +11,7 @@ import mealPlanModel from "./mealPlanModel.js";
 import waterLogModel from "./waterLogModel.js";
 import waterGoalModel from "./waterGoalModel.js";
 import sleepLogModel from "./sleepLogModel.js";
-export { customFoodModel, User, userProfile, trackingModel, foodModel, PasswordResetToken, VerificationOtp, nutritionCacheModel, recipeModel, mealPlanModel, waterLogModel, waterGoalModel, sleepLogModel };
+import exerciseModel from "./exerciseModel.js";
+import workoutTemplateModel from "./workoutTemplateModel.js";
+import workoutSessionModel from "./workoutSessionModel.js";
+export { customFoodModel, User, userProfile, trackingModel, foodModel, PasswordResetToken, VerificationOtp, nutritionCacheModel, recipeModel, mealPlanModel, waterLogModel, waterGoalModel, sleepLogModel, exerciseModel, workoutTemplateModel, workoutSessionModel };

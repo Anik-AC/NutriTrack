@@ -1,5 +1,5 @@
 $BASE    = "http://localhost:5000"
-$TOKEN   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMTY5YjVmOWRmYjUyMzUxNjA3ZjRmMyIsImVtYWlsIjoiZHJpdmVzcGFjZXQxQGdtYWlsLmNvbSIsInVzZXJUeXBlIjoiY3VzdG9tZXIiLCJpYXQiOjE3ODEwNjc5ODAsImV4cCI6MTc4MTA3MTU4MH0.gYpIGPdubeSSOaiiXtaN_DAQ8Iwap7_mkwejiYsQw6Y"
+$TOKEN   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMTY5YjVmOWRmYjUyMzUxNjA3ZjRmMyIsImVtYWlsIjoiZHJpdmVzcGFjZXQxQGdtYWlsLmNvbSIsInVzZXJUeXBlIjoiY3VzdG9tZXIiLCJpYXQiOjE3ODEwNzIxNjIsImV4cCI6MTc4MTA3NTc2Mn0.nvw0G_uz8bHcW1Bg3hHuGhnBgmqAV1wc69HEQ0428uk"
 $USER_ID = "6a169b5f9dfb52351607f4f3"
 
 $pass = 0; $fail = 0; $skip = 0
@@ -491,6 +491,119 @@ if ($sleepId) {
 
 $r = Req DELETE "/api/v1/sleep/log/000000000000000000000000"
 Check "DELETE /api/v1/sleep/log/:id (not found -> 404)" $r 404 { $args[0].error.code -eq "SLEEP_LOG_NOT_FOUND" }
+
+# -----------------------------------------------------------------------
+Section "PHASE 5 - WORKOUT PLANNER"
+
+## Exercise search
+$r = Req GET "/api/v1/exercises/search?q=bench"
+Check "GET /api/v1/exercises/search?q=bench" $r 200 { $null -ne $args[0].data.results }
+if ($r.ok) { Write-Host "         + $($r.data.data.count) result(s)" -ForegroundColor DarkGreen }
+
+$r = Req GET "/api/v1/exercises/search?muscleGroup=chest"
+Check "GET /api/v1/exercises/search?muscleGroup=chest" $r 200
+
+$r = Req GET "/api/v1/exercises/search?muscleGroup=badvalue"
+Check "GET /api/v1/exercises/search (invalid muscleGroup -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+## Workout templates
+$tmplBody = @{
+    name      = "E2E Push Day"
+    exercises = @(
+        @{ exerciseId = "649c72b17b3b4f001234ef01"; targetSets = 4; targetReps = "8-12"; restSeconds = 90; order = 0 }
+    )
+    tags = @("push")
+}
+$r = Req POST "/api/v1/workouts/templates" $tmplBody
+Check "POST /api/v1/workouts/templates" $r 201 { $null -ne $args[0].data._id }
+$tmplId = if ($r.ok) { $r.data.data._id } else { $null }
+if ($tmplId) { Write-Host "         + templateId=$tmplId" -ForegroundColor DarkGreen }
+
+$r = Req GET "/api/v1/workouts/templates"
+Check "GET /api/v1/workouts/templates" $r 200 { $null -ne $args[0].data.templates }
+
+if ($tmplId) {
+    $r = Req PUT "/api/v1/workouts/templates/$tmplId" @{ name = "E2E Push Day v2" }
+    Check "PUT /api/v1/workouts/templates/:id" $r 200 { $args[0].data.name -eq "E2E Push Day v2" }
+
+    $r = Req DELETE "/api/v1/workouts/templates/$tmplId"
+    Check "DELETE /api/v1/workouts/templates/:id" $r 200 { $null -ne $args[0].data.id }
+} else {
+    Skip "PUT /api/v1/workouts/templates/:id"  "no template ID"
+    Skip "DELETE /api/v1/workouts/templates/:id" "no template ID"
+}
+
+$r = Req PUT "/api/v1/workouts/templates/000000000000000000000000" @{ name = "X" }
+Check "PUT /api/v1/workouts/templates/:id (not found -> 404)" $r 404 { $args[0].error.code -eq "TEMPLATE_NOT_FOUND" }
+
+## Workout sessions (in-progress)
+$sessStart = (Get-Date).ToUniversalTime().AddHours(-1).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+$sessBody = @{
+    name      = "E2E Test Session"
+    startedAt = $sessStart
+    exercises = @(
+        @{
+            exerciseId   = "649c72b17b3b4f001234ef01"
+            exerciseName = "Test Exercise"
+            sets         = @(
+                @{ setNumber = 1; weight = 80; reps = 10; isWarmup = $false; weightUnit = "kg" }
+            )
+        }
+    )
+}
+$r = Req POST "/api/v1/workouts/sessions" $sessBody
+Check "POST /api/v1/workouts/sessions (in-progress)" $r 201 { $null -ne $args[0].data._id }
+$sessId = if ($r.ok) { $r.data.data._id } else { $null }
+if ($sessId) { Write-Host "         + sessionId=$sessId" -ForegroundColor DarkGreen }
+
+$r = Req GET "/api/v1/workouts/sessions"
+Check "GET /api/v1/workouts/sessions" $r 200 { $null -ne $args[0].data.sessions }
+
+if ($sessId) {
+    $r = Req GET "/api/v1/workouts/sessions/$sessId"
+    Check "GET /api/v1/workouts/sessions/:id" $r 200 { $args[0].data._id -eq $sessId }
+
+    ## Add a set and mark complete (triggers PR detection)
+    $sessEnd = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+    $r = Req PUT "/api/v1/workouts/sessions/$sessId" @{
+        completedAt = $sessEnd
+        exercises   = @(
+            @{
+                exerciseId   = "649c72b17b3b4f001234ef01"
+                exerciseName = "Test Exercise"
+                sets         = @(
+                    @{ setNumber = 1; weight = 80; reps = 10; isWarmup = $false; weightUnit = "kg" }
+                    @{ setNumber = 2; weight = 90; reps = 8;  isWarmup = $false; weightUnit = "kg" }
+                )
+            }
+        )
+    }
+    Check "PUT /api/v1/workouts/sessions/:id (complete)" $r 200 { $null -ne $args[0].data._id }
+} else {
+    Skip "GET /api/v1/workouts/sessions/:id" "no session ID"
+    Skip "PUT /api/v1/workouts/sessions/:id"  "no session ID"
+}
+
+$r = Req GET "/api/v1/workouts/sessions/000000000000000000000000"
+Check "GET /api/v1/workouts/sessions/:id (not found -> 404)" $r 404
+
+## Stats and exercise history
+$r = Req GET "/api/v1/workouts/stats?period=30"
+Check "GET /api/v1/workouts/stats" $r 200 { $null -ne $args[0].data.totalSessions }
+if ($r.ok) {
+    Write-Host "         + sessions=$($r.data.data.totalSessions), volume=$($r.data.data.totalVolume), prs=$($r.data.data.prsAchieved.Count)" -ForegroundColor DarkGreen
+}
+
+$r = Req GET "/api/v1/workouts/exercise-history/649c72b17b3b4f001234ef01"
+Check "GET /api/v1/workouts/exercise-history/:exerciseId" $r 200 { $null -ne $args[0].data.count }
+if ($r.ok) { Write-Host "         + count=$($r.data.data.count)" -ForegroundColor DarkGreen }
+
+## Validation errors
+$r = Req POST "/api/v1/workouts/templates" @{ exercises = @() }
+Check "POST /api/v1/workouts/templates (missing name -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+$r = Req POST "/api/v1/workouts/sessions" @{ exercises = @() }
+Check "POST /api/v1/workouts/sessions (missing name -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
 
 # -----------------------------------------------------------------------
 Section "SWAGGER DOCS"
