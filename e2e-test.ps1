@@ -1,5 +1,5 @@
 $BASE    = "http://localhost:5000"
-$TOKEN   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMTY5YjVmOWRmYjUyMzUxNjA3ZjRmMyIsImVtYWlsIjoiZHJpdmVzcGFjZXQxQGdtYWlsLmNvbSIsInVzZXJUeXBlIjoiY3VzdG9tZXIiLCJpYXQiOjE3ODEwNzIxNjIsImV4cCI6MTc4MTA3NTc2Mn0.nvw0G_uz8bHcW1Bg3hHuGhnBgmqAV1wc69HEQ0428uk"
+$TOKEN   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMTY5YjVmOWRmYjUyMzUxNjA3ZjRmMyIsImVtYWlsIjoiZHJpdmVzcGFjZXQxQGdtYWlsLmNvbSIsInVzZXJUeXBlIjoiY3VzdG9tZXIiLCJpYXQiOjE3ODEwNzc3MDUsImV4cCI6MTc4MTA4MTMwNX0.3voCyuKYcjB9dLSQ-nlLofvC7x1qm6gRoLPRS_I5pLc"
 $USER_ID = "6a169b5f9dfb52351607f4f3"
 
 $pass = 0; $fail = 0; $skip = 0
@@ -604,6 +604,101 @@ Check "POST /api/v1/workouts/templates (missing name -> 400)" $r 400 { $args[0].
 
 $r = Req POST "/api/v1/workouts/sessions" @{ exercises = @() }
 Check "POST /api/v1/workouts/sessions (missing name -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+# -----------------------------------------------------------------------
+Section "PHASE 6 - BODY METRICS"
+
+## Log entries
+$r = Req POST "/api/v1/body-metrics/log" @{
+    weight            = 75.5
+    weightUnit        = "kg"
+    bodyFatPercentage = 18.5
+    measurements      = @{ waist = 82; hips = 98; unit = "cm" }
+    notes             = "E2E morning weigh-in"
+}
+Check "POST /api/v1/body-metrics/log (weight + measurements)" $r 201 { $null -ne $args[0].data._id }
+$logId = if ($r.ok) { $r.data.data._id } else { $null }
+if ($logId) { Write-Host "         + logId=$logId, weight=$($r.data.data.weight)kg, bf=$($r.data.data.bodyFatPercentage)%" -ForegroundColor DarkGreen }
+
+## Log body fat only
+$r = Req POST "/api/v1/body-metrics/log" @{ bodyFatPercentage = 20.0 }
+Check "POST /api/v1/body-metrics/log (body fat only)" $r 201 { $null -ne $args[0].data._id }
+$logId2 = if ($r.ok) { $r.data.data._id } else { $null }
+
+## Log measurements only
+$r = Req POST "/api/v1/body-metrics/log" @{ measurements = @{ chest = 95; waist = 80; unit = "cm" } }
+Check "POST /api/v1/body-metrics/log (measurements only)" $r 201
+
+## Validation errors
+$r = Req POST "/api/v1/body-metrics/log" @{ notes = "just a note" }
+Check "POST /api/v1/body-metrics/log (no metric -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+$r = Req POST "/api/v1/body-metrics/log" @{ weight = -1 }
+Check "POST /api/v1/body-metrics/log (negative weight -> 400)" $r 400
+
+$r = Req POST "/api/v1/body-metrics/log" @{ bodyFatPercentage = 110 }
+Check "POST /api/v1/body-metrics/log (body fat > 100 -> 400)" $r 400
+
+## Latest
+$r = Req GET "/api/v1/body-metrics/latest"
+Check "GET /api/v1/body-metrics/latest" $r 200
+if ($r.ok -and $null -ne $r.data.data) {
+    Write-Host "         + latest: weight=$($r.data.data.weight)kg" -ForegroundColor DarkGreen
+}
+
+## History
+$r = Req GET "/api/v1/body-metrics/history"
+Check "GET /api/v1/body-metrics/history (default range)" $r 200 { $null -ne $args[0].data.entries }
+if ($r.ok) {
+    Write-Host "         + $($r.data.data.count) entries, $($r.data.data.weightMovingAverage.Count) MA points" -ForegroundColor DarkGreen
+}
+
+$today = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd")
+$r = Req GET "/api/v1/body-metrics/history?startDate=$today&endDate=$today"
+Check "GET /api/v1/body-metrics/history (today only)" $r 200 { $null -ne $args[0].data.entries }
+
+## Update
+if ($logId) {
+    $r = Req PUT "/api/v1/body-metrics/log/$logId" @{ weight = 74.8; notes = "Updated e2e" }
+    Check "PUT /api/v1/body-metrics/log/:id" $r 200 { $args[0].data.weight -eq 74.8 }
+} else {
+    Skip "PUT /api/v1/body-metrics/log/:id" "no log ID"
+}
+
+$r = Req PUT "/api/v1/body-metrics/log/000000000000000000000000" @{ weight = 70 }
+Check "PUT /api/v1/body-metrics/log/:id (not found -> 404)" $r 404 { $args[0].error.code -eq "METRICS_NOT_FOUND" }
+
+## Delete
+if ($logId2) {
+    $r = Req DELETE "/api/v1/body-metrics/log/$logId2"
+    Check "DELETE /api/v1/body-metrics/log/:id" $r 200 { $null -ne $args[0].data.id }
+} else {
+    Skip "DELETE /api/v1/body-metrics/log/:id" "no second log ID"
+}
+
+$r = Req DELETE "/api/v1/body-metrics/log/000000000000000000000000"
+Check "DELETE /api/v1/body-metrics/log/:id (not found -> 404)" $r 404 { $args[0].error.code -eq "METRICS_NOT_FOUND" }
+
+## Photos (upload skipped like avatar)
+Skip "POST /api/v1/body-metrics/photo" "file upload - requires multipart/form-data"
+
+$r = Req GET "/api/v1/body-metrics/photos"
+Check "GET /api/v1/body-metrics/photos (empty list)" $r 200 { $null -ne $args[0].data.photos }
+if ($r.ok) { Write-Host "         + total=$($r.data.data.total)" -ForegroundColor DarkGreen }
+
+$r = Req GET "/api/v1/body-metrics/photos?pose=front"
+Check "GET /api/v1/body-metrics/photos?pose=front" $r 200
+
+$r = Req GET "/api/v1/body-metrics/photos?pose=invalid"
+Check "GET /api/v1/body-metrics/photos (invalid pose -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+$r = Req DELETE "/api/v1/body-metrics/photo/000000000000000000000000"
+Check "DELETE /api/v1/body-metrics/photo/:id (not found -> 404)" $r 404 { $args[0].error.code -eq "PHOTO_NOT_FOUND" }
+
+# Clean up remaining log entry if it exists
+if ($logId) {
+    $null = Req DELETE "/api/v1/body-metrics/log/$logId"
+}
 
 # -----------------------------------------------------------------------
 Section "SWAGGER DOCS"

@@ -3,9 +3,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 
-import { connectDB } from "./config/db.js";
+import { connectDB, connectCloudinary } from "./config/index.js";
 import { swaggerSpec } from "./config/swagger.js";
-import { nutriRoutes, nutritionRoutes, authRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes, recipeRoutes, mealPlanRoutes, waterRoutes, sleepRoutes, exerciseRoutes, workoutRoutes } from "./routes/index.js";
+import { nutriRoutes, nutritionRoutes, authRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes, recipeRoutes, mealPlanRoutes, waterRoutes, sleepRoutes, exerciseRoutes, workoutRoutes, bodyMetricsRoutes } from "./routes/index.js";
 import { generalLimiter, authLimiter, bookingLimiter } from "./middleware/rateLimiter.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 import { sendSuccess } from "./utils/apiResponse.js";
@@ -79,6 +79,8 @@ app.use("/api/v1/sleep", generalLimiter, sleepRoutes);
 // v1-only workout planner (Phase 5)
 app.use("/api/v1/exercises", generalLimiter, exerciseRoutes);
 app.use("/api/v1/workouts",  generalLimiter, workoutRoutes);
+// v1-only body metrics (Phase 6)
+app.use("/api/v1/body-metrics", generalLimiter, bodyMetricsRoutes);
 // nutri routes live at the API root — mounted last so the groups above win.
 mountGroup("", generalLimiter, nutriRoutes);
 
@@ -87,6 +89,7 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 connectDB();
+connectCloudinary();
 
 // Local dev only — Vercel invokes the exported app directly
 if (process.env.NODE_ENV !== "production") {

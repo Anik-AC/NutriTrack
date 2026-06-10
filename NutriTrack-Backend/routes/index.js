@@ -11,4 +11,5 @@ import waterRoutes from "./waterRoutes.js";
 import sleepRoutes from "./sleepRoutes.js";
 import exerciseRoutes from "./exerciseRoutes.js";
 import workoutRoutes from "./workoutRoutes.js";
-export { authRoutes, nutriRoutes, nutritionRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes, recipeRoutes, mealPlanRoutes, waterRoutes, sleepRoutes, exerciseRoutes, workoutRoutes };
+import bodyMetricsRoutes from "./bodyMetricsRoutes.js";
+export { authRoutes, nutriRoutes, nutritionRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes, recipeRoutes, mealPlanRoutes, waterRoutes, sleepRoutes, exerciseRoutes, workoutRoutes, bodyMetricsRoutes };
