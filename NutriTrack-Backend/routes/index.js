@@ -8,4 +8,5 @@ import coachRoutes from "./coachRoute.js";
 import recipeRoutes from "./recipeRoutes.js";
 import mealPlanRoutes from "./mealPlanRoutes.js";
 import waterRoutes from "./waterRoutes.js";
-export { authRoutes, nutriRoutes, nutritionRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes, recipeRoutes, mealPlanRoutes, waterRoutes };
+import sleepRoutes from "./sleepRoutes.js";
+export { authRoutes, nutriRoutes, nutritionRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes, recipeRoutes, mealPlanRoutes, waterRoutes, sleepRoutes };

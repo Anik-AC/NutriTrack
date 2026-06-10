@@ -414,6 +414,85 @@ $r = Req DELETE "/api/v1/water/log/000000000000000000000000"
 Check "DELETE /api/v1/water/log/:id (not found -> 404)" $r 404 { $args[0].error.code -eq "WATER_LOG_NOT_FOUND" }
 
 # -----------------------------------------------------------------------
+Section "SLEEP TRACKER v1 (Phase 4)"
+
+$bedtime  = (Get-Date).ToUniversalTime().AddDays(-1).Date.AddHours(22).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+$wakeTime = (Get-Date).ToUniversalTime().Date.AddHours(6).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+
+$r = Req POST "/api/v1/sleep/log" @{
+    bedtime  = $bedtime
+    wakeTime = $wakeTime
+    quality  = 4
+    notes    = "E2E test sleep entry"
+    factors  = @("exercise")
+}
+Check "POST /api/v1/sleep/log" $r 201 { $args[0].data.durationMinutes -gt 0 -and $args[0].data.quality -eq 4 }
+$sleepId = if ($r.ok -and $r.data.data._id) { $r.data.data._id } else { $null }
+if ($r.ok) { Write-Host "         + duration=$($r.data.data.durationMinutes)min, quality=$($r.data.data.quality)/5" -ForegroundColor DarkGreen }
+
+$r = Req POST "/api/v1/sleep/log" @{ bedtime = $wakeTime; wakeTime = $bedtime; quality = 3 }
+Check "POST /api/v1/sleep/log (wake before bed -> 400)" $r 400 { $args[0].error.code -eq "INVALID_TIMES" }
+
+$r = Req POST "/api/v1/sleep/log" @{ bedtime = $bedtime; wakeTime = $wakeTime; quality = 9 }
+Check "POST /api/v1/sleep/log (quality > 5 -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+$r = Req POST "/api/v1/sleep/log" @{
+    bedtime  = "2026-06-01T00:00:00.000Z"
+    wakeTime = "2026-06-02T01:00:00.000Z"
+    quality  = 3
+}
+Check "POST /api/v1/sleep/log (>24h -> 400)" $r 400 { $args[0].error.code -eq "INVALID_DURATION" }
+
+$r = Req GET "/api/v1/sleep/today"
+Check "GET /api/v1/sleep/today" $r 200 { $args[0].data.durationMinutes -gt 0 }
+
+$r = Req GET "/api/v1/sleep/history"
+Check "GET /api/v1/sleep/history (default range)" $r 200 { $null -ne $args[0].data.entries }
+if ($r.ok) { Write-Host "         + $($r.data.data.total) total entries, avgDuration=$($r.data.data.averageDurationMinutes)min" -ForegroundColor DarkGreen }
+
+$startDate = (Get-Date).AddDays(-7).ToString("yyyy-MM-dd")
+$endDate   = (Get-Date).ToString("yyyy-MM-dd")
+$r = Req GET "/api/v1/sleep/history?startDate=$startDate&endDate=$endDate&page=1&limit=10"
+Check "GET /api/v1/sleep/history (date range + pagination)" $r 200 { $args[0].success -eq $true }
+
+$r = Req GET "/api/v1/sleep/history?startDate=2026-06-10&endDate=2026-06-01"
+Check "GET /api/v1/sleep/history (start > end -> 400)" $r 400 { $args[0].error.code -eq "INVALID_RANGE" }
+
+$r = Req GET "/api/v1/sleep/analysis?period=30"
+Check "GET /api/v1/sleep/analysis" $r 200 { $null -ne $args[0].data.insights }
+if ($r.ok) {
+    Write-Host "         + $($r.data.data.entriesAnalyzed) entries analyzed" -ForegroundColor DarkGreen
+    if ($null -ne $r.data.data.consistencyScore) {
+        Write-Host "         + consistencyScore=$($r.data.data.consistencyScore), avgQuality=$($r.data.data.averageQuality)" -ForegroundColor DarkGreen
+    }
+    if ($r.data.data.insights.Count -gt 0) {
+        Write-Host "         + $($r.data.data.insights.Count) insight(s)" -ForegroundColor DarkGreen
+    }
+}
+
+if ($sleepId) {
+    $r = Req PUT "/api/v1/sleep/log/$sleepId" @{ quality = 5; notes = "Updated via e2e" }
+    Check "PUT /api/v1/sleep/log/:id (quality update)" $r 200 { $args[0].data.quality -eq 5 }
+
+    $newBed  = (Get-Date).ToUniversalTime().AddDays(-1).Date.AddHours(21).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+    $newWake = (Get-Date).ToUniversalTime().Date.AddHours(5).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+    $r = Req PUT "/api/v1/sleep/log/$sleepId" @{ bedtime = $newBed; wakeTime = $newWake }
+    Check "PUT /api/v1/sleep/log/:id (time update)" $r 200 { $args[0].data.durationMinutes -gt 0 }
+
+    $r = Req PUT "/api/v1/sleep/log/$sleepId" @{ bedtime = $wakeTime }
+    Check "PUT /api/v1/sleep/log/:id (only bedtime -> 400)" $r 400 { $args[0].error.code -eq "VALIDATION_ERROR" }
+
+    $r = Req DELETE "/api/v1/sleep/log/$sleepId"
+    Check "DELETE /api/v1/sleep/log/:id" $r 200 { $null -ne $args[0].data.id }
+} else {
+    Skip "PUT /api/v1/sleep/log/:id" "no sleep ID"
+    Skip "DELETE /api/v1/sleep/log/:id" "no sleep ID"
+}
+
+$r = Req DELETE "/api/v1/sleep/log/000000000000000000000000"
+Check "DELETE /api/v1/sleep/log/:id (not found -> 404)" $r 404 { $args[0].error.code -eq "SLEEP_LOG_NOT_FOUND" }
+
+# -----------------------------------------------------------------------
 Section "SWAGGER DOCS"
 $r = Req GET "/api/docs.json" -auth $false
 Check "GET /api/docs.json" $r 200
