@@ -1,7 +1,10 @@
 import authRoutes from "./authRoutes.js";
 import nutriRoutes from "./nutriRoutes.js";
+import nutritionRoutes from "./nutritionRoutes.js";
 import profileRoutes from "./profileRoutes.js";
 import userRoutes from './userRoute.js';
 import adminRoutes from "./adminRoute.js";
 import coachRoutes from "./coachRoute.js";
-export { authRoutes, nutriRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes};
+import recipeRoutes from "./recipeRoutes.js";
+import mealPlanRoutes from "./mealPlanRoutes.js";
+export { authRoutes, nutriRoutes, nutritionRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes, recipeRoutes, mealPlanRoutes };

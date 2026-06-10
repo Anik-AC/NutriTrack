@@ -5,4 +5,7 @@ import trackingModel from "./trackingModel.js";
 import foodModel from "../models/customFoodModel.js";
 import PasswordResetToken from "./PasswordResetToken.js";
 import VerificationOtp from "./VerificationOtp.js";
-export { customFoodModel, User, userProfile, trackingModel, foodModel, PasswordResetToken,VerificationOtp};
+import nutritionCacheModel from "./nutritionCacheModel.js";
+import recipeModel from "./recipeModel.js";
+import mealPlanModel from "./mealPlanModel.js";
+export { customFoodModel, User, userProfile, trackingModel, foodModel, PasswordResetToken, VerificationOtp, nutritionCacheModel, recipeModel, mealPlanModel };

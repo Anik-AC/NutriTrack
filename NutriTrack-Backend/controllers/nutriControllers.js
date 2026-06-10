@@ -1,7 +1,39 @@
 import { trackingModel, customFoodModel} from "../models/index.js";
 
+/**
+ * Normalizes a UnifiedFoodItem payload (from /api/v1/nutrition/*) to the shape
+ * expected by trackingModel. Legacy payloads (with `details` already set) pass through unchanged.
+ */
+function normalizeTrackPayload(body) {
+  // Legacy format: body already has foodName + details — pass through
+  if (body.details) return body;
+
+  // UnifiedFoodItem format: body has `name` + `nutrients`
+  if (body.nutrients) {
+    return {
+      userId: body.userId,
+      foodName: body.name,
+      details: {
+        calories: body.nutrients.calories ?? 0,
+        protein: body.nutrients.protein ?? 0,
+        carbohydrates: body.nutrients.carbs ?? 0,
+        fat: body.nutrients.fat ?? 0,
+        fiber: body.nutrients.fiber,
+      },
+      quantity: body.quantity ?? 1,
+      servingUnit: body.servingUnit ?? "serving",
+      eatenWhen: body.eatenWhen,
+      eatenDate: body.eatenDate,
+      source: body.source ?? "legacy",
+      sourceId: body.sourceId,
+    };
+  }
+
+  return body;
+}
+
 export const trackfoodItem = async (req, res) => {
-  let trackData = req.body;
+  let trackData = normalizeTrackPayload(req.body);
 
   try {
     let data = await trackingModel.create(trackData);
@@ -18,7 +50,7 @@ export const getMealsConsumed = async (req, res) => {
   try {
     const mealsConsumed = await trackingModel
       .find({ eatenDate: getTodayDate, userId: req.user.id })
-      .select("foodName details eatenWhen");
+      .select("foodName details eatenWhen source sourceId");
     if (mealsConsumed.length != 0) {
       res.send({ success: true, data: mealsConsumed });
     } else {

@@ -41,6 +41,15 @@ const trackingSchema = mongoose.Schema(
       enum: ["breakfast", "AM snack", "lunch", "PM snack", "dinner"],
       required: true,
     },
+    // Phase 1.2: track which provider/format supplied this food entry
+    source: {
+      type: String,
+      enum: ["usda", "openfoodfacts", "edamam", "nutritionix", "custom", "legacy"],
+      default: "legacy",
+    },
+    sourceId: {
+      type: String,
+    },
   },
   { timestamps: true },
 );

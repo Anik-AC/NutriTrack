@@ -5,7 +5,7 @@ import swaggerUi from "swagger-ui-express";
 
 import { connectDB } from "./config/db.js";
 import { swaggerSpec } from "./config/swagger.js";
-import { nutriRoutes, authRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes } from "./routes/index.js";
+import { nutriRoutes, nutritionRoutes, authRoutes, profileRoutes, userRoutes, adminRoutes, coachRoutes, recipeRoutes, mealPlanRoutes } from "./routes/index.js";
 import { generalLimiter, authLimiter, bookingLimiter } from "./middleware/rateLimiter.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 import { sendSuccess } from "./utils/apiResponse.js";
@@ -67,6 +67,11 @@ mountGroup("/user", generalLimiter, profileRoutes);
 mountGroup("/booking", bookingLimiter, userRoutes);
 mountGroup("/admin", generalLimiter, adminRoutes);
 mountGroup("/coach", generalLimiter, coachRoutes);
+// v1-only nutrition abstraction layer (Phase 1)
+app.use("/api/v1/nutrition", generalLimiter, nutritionRoutes);
+// v1-only recipe book and meal planner (Phase 2)
+app.use("/api/v1/recipes", generalLimiter, recipeRoutes);
+app.use("/api/v1/meal-plan", generalLimiter, mealPlanRoutes);
 // nutri routes live at the API root — mounted last so the groups above win.
 mountGroup("", generalLimiter, nutriRoutes);
 

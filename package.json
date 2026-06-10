@@ -53,5 +53,8 @@
   },
   "overrides": {
     "basic-ftp": "^5.2.0"
+  },
+  "mongodbMemoryServer": {
+    "version": "7.0.14"
   }
 }
